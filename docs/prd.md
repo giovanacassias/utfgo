@@ -81,7 +81,7 @@ Através do acompanhamento das métricas mensais do sistema: número de passagei
 ### US01 — [título] · `Must|Should|Could Have` · `S|M|L` · Status: `Draft`
 - **US01 — Cadastro e Autenticação de Usuário** · `M` · Status: `Ready`
   Como usuário, quero criar e acessar conta usando e-mail institucional e código OTP, para autenticação segura passwordless.
-- **US02 — Compra de Fichas na Carteira Digital** · `M` · Status: `Draft`
+- **US02 — Compra de Fichas na Carteira Digital** · `M` · Status: `Ready`
   Como passageiro, quero comprar fichas via Pix ou Cartão com confirmação assíncrona (webhook), para saldo de reservas.
 - **US03 — Homologação de Perfil de Condutor** · `M` · Status: `Draft`
   Como passageiro >18 anos, quero enviar CNH e CRLV, para aprovação de perfil de condutor pelo administrador.
