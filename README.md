@@ -15,6 +15,7 @@ O UTFgo conecta membros da comunidade acadêmica que desejam oferecer caronas a 
 - [Especificação de Requisitos (PRD)](docs/prd.md)
 - [Arquitetura do Sistema](docs/architecture.md)
 - [Checklist e Ficha da Disciplina](docs/checklist.md)
+- [Protótipo no Figma](https://www.figma.com/design/2eDxEEIwGE3I8OCTHEuSPO/UTFgo?node-id=51-13&t=OG9kNcVDpsLUrVRU-1)
 
 ---
 
