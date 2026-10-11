@@ -1,153 +1,154 @@
-# 🛠️ Architecture / Software Design Document
+# Architecture / Software Design Document
 
-**Projeto:** UTFgo  
-**Versão:** 1.0.0  
-**Última atualização:** 2026-10-02  
+**Projeto:** UTFgo
+**Versão do documento:** 1.0.0 — revisão em andamento
+**Última atualização:** 2026-10-10
 
-> 🤖 **O `prd.md` responde _o quê_ o produto faz. Este responde _onde as coisas moram e como se chamam_.** Detalhe de tela — rota, componente, contrato — **não** se decide aqui: isso é trabalho da spec de cada história.
->
-> ✍️ **Documento gerado e validado via `/utf-architecture`:** Define as quatro declarações que o `/utf-setup` exige: **framework do backend, framework do frontend, estrutura do monorepo e como rodar os testes.**
+O PRD define o produto; este documento define a estrutura do projeto e seus nomes técnicos. Esta revisão segue o enunciado da Atividade 06 fornecido pela equipe. O app será gerado na Atividade 07, após a revisão humana deste documento.
 
----
+## 1. Fontes de contexto para a IA
 
-## 🤖 1. Fontes de Contexto para a IA
+| Fonte | Local | Responsabilidade |
+| :--- | :--- | :--- |
+| Requisitos | `docs/prd.md` | Glossário, atores e regras de negócio |
+| Design | `docs/design-tokens.md` | Tokens, breakpoints, identidade PWA e referências do protótipo |
+| Protótipo | [Figma UTFgo](https://www.figma.com/design/2eDxEEIwGE3I8OCTHEuSPO/UTFgo?node-id=51-13) | Telas consultadas em 2026-10-10; referência para rotas e componentes |
+| Constituição | `.agents/rules/utf-rules.md`, referenciada por `CLAUDE.md` | Método, decisões humanas e limites dos agentes |
+| Workflows | `.agents/workflows/` | Entrevistas e ciclos do método |
+| Agentes | `.agents/agents/`, com adaptadores em `.claude/agents/` | Implementação, revisão, auditoria e tutoria |
 
-> Onde a IDE agêntica busca a verdade. **Isto é o índice; a configuração mora nos arquivos** — documento não configura ferramenta.
+**Pendência de contexto:** o checklist e os workflows deste checkout ainda descrevem NestJS/Prisma e GitHub Flow pela `main`. A Atividade 06 fornecida pela equipe exige Angular, json-server/BaaS, npm workspaces e Gitflow pela `develop`. Antes do `/utf-setup`, a equipe deve obter e conferir o template oficial correspondente. O `AGENTS.md` citado pelo enunciado não existe neste checkout; esta revisão não cria nem substitui esse arquivo.
 
-| Fonte | Onde configurar | Serve para |
-| :---- | :-------------- | :--------- |
-| Constituição da IA | `.agents/rules/utf-rules.md` (via `CLAUDE.md` / `GEMINI.md`) | Regras inegociáveis: fases do SDD, 2 rodadas, revisores distintos, Git Flow |
-| Fluxos da IA | `.agents/workflows/` | PRD, architecture, setup, backlog, ciclo por tarefa, tutor |
-| Agentes (subagentes) | `.agents/agents/` | Implementador, revisor de conformidade, revisor de código, auditor e tutor |
-| Ficha da disciplina | `docs/checklist.md` | Regras do projeto, IDs e entregas da disciplina |
-| Requisitos do Produto | `docs/prd.md` | Escopo funcional (stories), regras de negócio (RN) e glossário ubíquo |
+## 2. Stack tecnológica e padrões
 
----
+- **Frontend:** Angular 22+, com TypeScript na faixa compatível com a linha escolhida.
+- **Ambiente:** Node.js LTS compatível com Angular; npm como gerenciador.
+- **Estilo:** Tailwind CSS 4+, usando cores, tipografia, espaçamentos e breakpoints de `docs/design-tokens.md`. Integração com Angular por `@tailwindcss/postcss` da mesma linha e `postcss`. Essas dependências foram aprovadas pela equipe; serão instaladas na Atividade 07, com versões exatas no manifesto e no lockfile.
+- **Dados — Entrega 2:** json-server, com dados simulados em `mocks/db.json` na raiz.
+- **Dados — Entrega 3:** BaaS; fornecedor e SDK adiados para essa entrega.
+- **Backend próprio:** `apps/api` é somente um lugar reservado; ficará vazio durante o semestre, conforme o enunciado.
+- **Monorepo:** npm workspaces, com declaração das aplicações existentes no `package.json` da raiz. A pasta reservada `apps/api` não terá pacote ou scripts executáveis.
+- **Testes:** Vitest, padrão do gerador Angular. Testes pelo comando `npm test` na raiz; lint pelo comando `npm run lint` na raiz. A configuração do lint será feita pelo `/utf-setup` na Atividade 07.
 
-## 📦 2. Stack Tecnológica
+Nenhuma dependência escolhida pela equipe entra sem declaração neste documento. Dependências padrão do gerador serão ratificadas no setup. As versões exatas ficam no `package.json` e no lockfile, criados na Atividade 07.
 
-> Definição **estrita**: nenhuma dependência entra sem aparecer aqui. Esta seção e o `package.json` contam a mesma história.
+Os scripts da raiz devem encaminhar os comandos ao workspace `apps/web`: `npm test` executa a suíte Angular com `ng test --watch=false`, e `npm run lint` executa `ng lint` após a configuração do linter no setup. A pasta reservada `apps/api` não participa desses comandos.
 
-- **Backend:** NestJS (v12) + TypeScript.
-- **ORM:** Prisma ORM.
-- **Banco de Dados Relacional:** PostgreSQL 16.
-- **Frontend:** Angular (v22).
-- **Estilo:** Vanilla CSS moderno estruturado com tokens de design (CSS Custom Properties).
-- **Testes:** **Vitest** unificado para Backend e Frontend, com **Supertest** para testes de integração/e2e na API.
+### 2.1. Padrões Angular
 
-### 🎯 2.1. Padrões de Código do Frontend (Angular v22)
-- **Componentes Standalone nativos:** Padrão do Angular 22 (não se escreve `standalone: true`).
-- **Reatividade com Signals:** Estado gerenciado via `signal()`, `computed()` e `effect()` para reatividade granular.
-- **Controle de Fluxo Moderno:** Uso exclusivo da nova sintaxe de templates (`@if`, `@for`, `@switch`), vetando diretivas legadas (`*ngIf`, `*ngFor`).
-- **Inputs e Outputs Reativos:** Uso de funções reativas `input()` e `output()`.
-- **Injeção de Dependências:** Uso exclusivo da função funcional `inject()`, abolindo a injeção em construtores.
-- **Roteamento:** Lazy loading configurado por rotas de feature via `loadComponent` ou `loadChildren`.
-- **Regra de Ouro da Camada de Dados:** **Componente não fala com o servidor.** Todo acesso à API NestJS passa obrigatoriamente por uma camada de serviços/repositórios dedicada. Mudanças de contrato afetam apenas essa camada, nunca a interface gráfica.
+- Componentes standalone, sem declaração redundante de `standalone: true`.
+- Estado de interface com `signal()` e valores derivados com `computed()`; `effect()` somente quando houver efeito necessário.
+- Templates com `@if`, `@for` e `@switch`.
+- Entradas e saídas com `input()` e `output()`.
+- Injeção de dependências com `inject()`.
+- Lazy loading por feature, com `loadComponent` ou `loadChildren`.
+- Formulários reativos com `ReactiveFormsModule`, `FormControl` e `FormGroup`, usando validadores e mensagens de erro. Regras específicas de cada formulário pertencem à spec da história.
+- Interceptors funcionais em `core/interceptors/` para tratamento centralizado de erros HTTP. A integração da autenticação ocorrerá na Entrega 3.
+- Interoperabilidade RxJS/signals com `toSignal()` e `toObservable()` quando necessária, sem biblioteca adicional de estado. A conversão não deve recriar assinaturas a cada renderização.
 
-### 🧱 2.2. Backend — Regras Estruturais (IDs da Disciplina)
-- **Separação Estrita de Camadas (ID6):**
-  - **Controllers:** Tratam a requisição HTTP, acionam DTOs e delegam para o Service. Sem lógica de negócio ou chamadas diretas ao Prisma.
-  - **Services:** Concentram a lógica de domínio, regras de negócio e transações de banco com `prisma.$transaction`.
-  - **Modules:** Encapsulam e exportam estritamente o necessário para comunicação entre domínios.
-- **Validação de Entrada e Blindagem da API (ID7):**
-  - Uso global de `ValidationPipe` com `{ whitelist: true, forbidNonWhitelisted: true, transform: true }`.
-  - Todas as requisições de escrita tipadas com DTOs e validadas via decorators de `class-validator` e `class-transformer`.
-- **Autenticação, Autorização e Controle de Acesso (ID9):**
-  - Autenticação stateless com tokens **JWT** (via Bearer Token no header `Authorization`).
-  - `JwtAuthGuard` aplicado globalmente na API, com exceção de rotas marcadas com o decorator `@Public()`.
-  - `RolesGuard` gerenciando permissões baseadas no enum de papéis (`PASSENGER`, `DRIVER`, `ADMIN`) via decorator `@Roles(...)`.
-- **Padronização Global de Respostas e Erros (ID10):**
-  - **Interceptor Global:** Envelopa todas as respostas com sucesso no padrão `{ "data": ..., "timestamp": "...", "path": "..." }`.
-  - **Exception Filter Global:** Trata `HttpException` e exceções do Prisma (`PrismaClientKnownRequestError`), devolvendo `{ "statusCode": ..., "message": ..., "error": ..., "timestamp": "..." }`.
-- **Validação de Variáveis de Ambiente Fail-Fast (ID17):**
-  - `@nestjs/config` com `ConfigModule.forRoot({ isGlobal: true, validate })`.
-  - Reutilização de `class-validator` e `class-transformer` em classe de validação de ambiente (`EnvironmentVariables`), abortando imediatamente o bootstrap em caso de chave ausente ou formato inválido. Nenhuma chave no repositório.
-- **Gateway de Pagamento Sandbox e Webhooks (ID20 / ID21):**
-  - Gateway exclusivo: **Mercado Pago** em ambiente sandbox (aderente às regras do UTFgo com Pix e moeda BRL).
-  - Webhooks tratados em endpoint dedicado `@Public()` com verificação obrigatória de assinatura criptográfica HMAC SHA256 (`x-signature`), garantindo a consistência do status do pedido e da transação.
+### 2.2. Camada de dados
 
-### 🌐 2.3. O Contrato da API (ID14)
-- Documentação interativa **OpenAPI/Swagger** gerada do código através de decorators (`@ApiTags`, `@ApiOperation`, `@ApiResponse`) e servida pela própria API no endpoint `/docs`.
-- O contrato é vivo; nenhum arquivo estático (ex.: `swagger.json`) é commitado no repositório.
+**Componente não fala com o servidor.** Somente Services de dados em `core/services/` acessam a fonte de dados. Componentes não injetam `HttpClient`, não chamam `fetch` e não usam diretamente o SDK do futuro BaaS.
 
-### 🧪 2.4. Comandos Exatos de Testes e Lint
-- **Backend (`apps/api`):**
-  - Execução de testes: `npm test` (executa `vitest run`)
-  - Testes em modo watch (TDD): `npm run test:watch` (executa `vitest`)
-  - Linting: `npm run lint` (executa `eslint "{src,apps,libs,test}/**/*.ts"`)
-- **Frontend (`apps/web`):**
-  - Execução de testes: `npm test` (executa `ng test --watch=false`)
-  - Testes em modo watch (TDD): `npm run test:watch` (executa `ng test`)
-  - Linting: `npm run lint` (executa `ng lint`)
-- **Raiz do Monorepo (para CI / GitHub Actions — ID18):**
-  - Testes completos: `npm test` (executa os testes em `apps/api` e `apps/web`)
-  - Lint completo: `npm run lint` (executa o lint em `apps/api` e `apps/web`)
+Os Services traduzem os dados da fonte para os modelos da aplicação. Assim, a migração para o BaaS troca a implementação de acesso a dados, preservando os contratos consumidos pelas telas. Ajustes de comportamento exigidos pela autenticação real serão definidos nas specs correspondentes.
 
----
+### 2.3. Autenticação e decisões adiadas
 
-## 🗂️ 3. Estrutura do Repositório (Monorepo)
+O PRD mantém OTP por e-mail institucional e JWT como requisitos. Na Entrega 2, a sessão será simulada, sem autenticação real. Na Entrega 3, a equipe decidirá o BaaS, a configuração de OTP, o armazenamento e a renovação dos tokens e as regras de acesso no servidor.
 
-> Monorepo com duas aplicações autônomas (`apps/api` e `apps/web`), cada uma com seu próprio `package.json`. A estrutura de diretórios é materializada previamente no setup para evidenciar a arquitetura.
+Guards do frontend controlam a navegação; não substituem a autorização no servidor. O json-server não possui autenticação, propriedade de registros ou validação de negócio. Essas limitações devem ser tratadas na migração, sem apresentar a simulação como segurança real.
+
+### 2.4. Referências técnicas consultadas
+
+O Context7 não está disponível nesta sessão; as referências foram conferidas diretamente na documentação oficial. Isso não comprova o teste de vida do Context7 solicitado à equipe pela atividade.
+
+- [Compatibilidade Angular/Node.js/TypeScript/RxJS](https://angular.dev/reference/versions)
+- [Testes no Angular](https://angular.dev/guide/testing)
+- [Formulários reativos](https://angular.dev/guide/forms/reactive-forms)
+- [Interceptors funcionais](https://angular.dev/guide/http/interceptors)
+- [Interoperabilidade RxJS e signals](https://angular.dev/ecosystem/rxjs-interop)
+- [Integração Tailwind com Angular](https://tailwindcss.com/docs/installation/framework-guides/angular)
+
+## 3. Estrutura do repositório
+
+A árvore abaixo é um contrato para o desenvolvimento. Pastas de domínio serão criadas somente quando uma história precisar delas. Esta atividade não cria aplicações, pastas de features ou arquivos de configuração executáveis.
 
 ```text
 .
-├── .agents/                 # Constituição, workflows e prompts dos agentes
-├── README.md                # Vitrine e instruções de execução
-├── docker-compose.yml       # Banco PostgreSQL 16 local (porta 5432)
-├── docs/                    # prd.md, architecture.md, checklist.md
-├── specs/                   # Especificações, planos e revisões por história
+├── .agents/                   # Constituição, workflows e prompts
+├── .claude/                   # Adaptadores do harness
+├── CLAUDE.md                   # Referência à constituição
+├── README.md
+├── docs/                      # Requisitos, arquitetura e design
+├── specs/                     # Specs, planos e pareceres das histórias
+├── package.json               # Futuro: npm workspaces e scripts da raiz
+├── mocks/
+│   └── db.json                # Futuro: dados simulados da Entrega 2
 └── apps/
-    ├── api/                 # Backend NestJS + Prisma
-    │   ├── prisma/
-    │   │   ├── schema.prisma
-    │   │   └── migrations/
-    │   ├── src/
-    │   │   ├── common/      # Interceptors, Filters, Guards, Decorators
-    │   │   ├── config/      # ConfigModule e validação fail-fast com class-validator
-    │   │   ├── prisma/      # PrismaService
-    │   │   ├── modules/     # Módulos por domínio do PRD
-    │   │   │   ├── auth/
-    │   │   │   ├── users/
-    │   │   │   ├── wallet/
-    │   │   │   ├── payments/
-    │   │   │   ├── rides/
-    │   │   │   ├── bookings/
-    │   │   │   ├── meeting-points/
-    │   │   │   └── disputes/
-    │   │   ├── app.module.ts
-    │   │   └── main.ts
-    │   ├── test/            # Suítes de integração/e2e com Supertest + Vitest
-    │   ├── package.json
-    │   └── tsconfig.json
-    └── web/                 # Frontend Angular 22 Standalone
-        ├── src/
-        │   ├── app/
-        │   │   ├── core/    # Interceptors HTTP (JWT), Guards de rotas, API client
-        │   │   ├── shared/  # Componentes reutilizáveis, pipes e diretivas
-        │   │   └── features/# Módulos verticais por funcionalidade (lazy-loaded)
-        │   │       ├── auth/
-        │   │       ├── wallet/
-        │   │       ├── rides/
-        │   │       ├── bookings/
-        │   │       └── admin/
-        │   ├── main.ts
-        │   ├── index.html
-        │   └── styles.css
-        ├── package.json
-        └── angular.json
+    ├── api/                   # Reservada e vazia
+    └── web/
+        └── src/
+            ├── environments/  # Endereços e configuração pública
+            └── app/
+                ├── core/
+                │   ├── services/      # Acesso a dados
+                │   ├── guards/        # Controle de navegação
+                │   └── interceptors/  # Tratamento HTTP transversal
+                ├── shared/            # Componentes de apresentação e pipes
+                └── features/          # Telas organizadas por domínio
 ```
 
----
+## 4. Arquitetura frontend
 
-## 🏗️ 4. Arquitetura Frontend
+### 4.1. Responsabilidades e importações
 
-- **Organização por Feature:** Cada pasta em `src/app/features/` agrupa as páginas (Smart Components), componentes de apresentação (Dumb Components) e a camada de serviço/repositório específica daquele domínio.
-- **Isolamento de Requisições:** Telas e componentes visuais jamais injetam clientes HTTP ou efetuam `fetch`. Eles consomem Signals providos pelos serviços da feature.
-- **Roteamento Modular:** O arquivo de rotas principal (`app.routes.ts`) apenas mapeia caminhos para as rotas das features com `loadChildren` ou `loadComponent`.
+- `core/` reúne Services de dados, guards e interceptors. Não importa telas ou componentes de `features/`.
+- `shared/` reúne componentes reutilizáveis de apresentação e pipes. Seus componentes recebem dados e emitem eventos, sem buscar dados no servidor. Não importa `features/`.
+- `features/` reúne telas e componentes exclusivos de cada domínio. Pode importar `core/` e `shared/`, mas uma feature não importa outra.
+- Um componente usado por mais de uma feature vai para `shared/`; acesso a dados compartilhado permanece em `core/services/`.
+- Dados e código usam inglês; a interface usa português.
 
----
+### 4.2. Roteamento planejado
 
-## 🗄️ 5. Arquitetura de Dados
+O mapa abaixo foi aprovado pela equipe após a consulta ao Figma em 2026-10-10. São rotas planejadas do frontend, sem implementação nesta atividade. O arquivo principal `app.routes.ts` encaminhará para as features com `loadComponent` ou `loadChildren`; as páginas serão carregadas por lazy loading quando a pessoa acessar cada rota. O §6 permanece reservado às histórias efetivamente implementadas.
+
+| Rota planejada | Tela ou fluxo do protótipo | Acesso previsto conforme PRD |
+| :--- | :--- | :--- |
+| `/` | Página institucional | Público |
+| `/entrar` | E-mail institucional | Público |
+| `/entrar/codigo` | Verificação por código | Público, etapa de entrada |
+| `/inicio` | Início conforme o papel do usuário | Sessão de usuário |
+| `/caronas` | Busca de caronas | Passageiro com sessão |
+| `/caronas/:id/reservar` | Confirmação da solicitação de reserva | Passageiro com sessão |
+| `/condutor/caronas` | Publicação e listagem de caronas oferecidas | Condutor homologado com sessão |
+| `/condutor/caronas/:id` | Gestão da carona e dos passageiros | Condutor responsável pela carona, com sessão |
+| `/carteira` | Saldo e extrato | Sessão de passageiro ou condutor |
+| `/carteira/comprar` | Compra de fichas e etapas do pagamento | Sessão de passageiro ou condutor |
+
+As condições de acesso orientam os futuros guards em `core/guards/`. Na Entrega 2, a sessão e os papéis serão simulados; a autorização efetiva no servidor será definida com o BaaS na Entrega 3. Controle de propriedade de carona não pode depender somente de um guard do frontend.
+
+As versões vazia e preenchida do início e da listagem são estados da mesma página. Quantidade de fichas, método de pagamento, código Pix e resultado são etapas do fluxo `/carteira/comprar`, sem rotas separadas neste mapa. Detalhes de transição, validação e comportamento de cada etapa pertencem à spec da história.
+
+Referências visuais consultadas: página institucional (`260:394`), login e código (`133:1716`, `133:1756`), início do passageiro (`133:2256`, `133:2475`), busca (`133:2352`), confirmação de reserva (`295:561`), início do condutor (`248:442`, `248:538`), publicação/listagem (`248:684`, `248:769`, `248:895`), gestão de passageiros (`248:1067`), carteiras (`133:2146`, `248:332`) e compra/pagamento (`133:1822`, `248:241`, `133:1913`, `133:1978`, `133:2032`, `133:2089`).
+
+O item Perfil aparece na navegação, mas uma tela correspondente não foi identificada nos frames nomeados consultados. Não foi criada uma rota para esse item.
+
+### 4.3. Componentes compartilhados
+
+O mapa abaixo foi aprovado pela equipe a partir dos elementos repetidos no protótipo. Os componentes pertencem a `shared/`, recebem dados por `input()` e comunicam ações por `output()`. Não injetam Services de dados, `HttpClient` ou SDK do BaaS. As telas em `features/` coordenam as ações com os Services de `core/`.
+
+| Componente (EN) | Responsabilidade | Uso no protótipo |
+| :--- | :--- | :--- |
+| `RideCard` | Apresentar informações da carona e emitir ações solicitadas pela tela | Busca, confirmação de reserva, início e caronas do condutor |
+| `UserIdentity` | Apresentar nome, foto e informações públicas fornecidas pela tela | Identificação do condutor e dos passageiros |
+| `AppNavigation` | Apresentar opções de navegação recebidas e indicar a opção ativa | Navegação recorrente das telas de passageiro e condutor |
+| `StatusBadge` | Apresentar rótulo e estilo de um estado recebido | Indicadores de situação da carona e do pagamento |
+
+As diferenças visuais entre contextos serão expressas pelas entradas e pela composição dos componentes, sem buscar dados ou decidir permissões dentro deles. Um componente exclusivo de uma tela permanece na respectiva feature. Os arquivos serão criados somente nas histórias que precisarem deles; nesta atividade fica registrado apenas o mapa.
+
+## 5. Arquitetura de dados
+
+**Modelo em revisão:** os nomes do glossário, a representação de papéis, vagas, fichas e sentido e as cardinalidades foram aprovados na entrevista. Os demais atributos da proposta original ainda serão conferidos na leitura final pela equipe. O conjunto não é um schema aprovado para geração de código. A materialização no BaaS ocorrerá na Entrega 3; estados e transições específicos de histórias serão definidos nas specs correspondentes.
 
 ### 📖 5.1. Glossário Técnico (Mapeamento PRD §2 → Entidades)
 
@@ -155,18 +156,34 @@
 
 | Termo PRD (PT-BR) | Entidade Técnica (EN) | Atributos Principais |
 | :---------------- | :-------------------- | :------------------- |
-| **Usuário** | `User` | `id`, `email`, `name`, `role` (`PASSENGER`, `DRIVER`, `ADMIN`), `status` (`ACTIVE`, `SUSPENDED`, `BANNED`), `createdAt` |
+| **Usuário** | `User` | `id`, `email`, `name`, `roles` (coleção de `PASSENGER`, `DRIVER`, `ADMIN`), `status` (`ACTIVE`, `SUSPENDED`, `BANNED`), `createdAt` |
+| **Administrador** | `User` com papel `ADMIN` | Identidade em `User`; permissões conforme PRD §3 |
+| **Passageiro** | `User` com papel `PASSENGER` | Identidade em `User`; referências por `Booking.passengerId` |
+| **Condutor** | `User` com papéis `PASSENGER` e `DRIVER`, associado a `DriverProfile` aprovado | Identidade em `User`, homologação em `DriverProfile`; referências por `Ride.driverId` |
 | **Perfil de Condutor** | `DriverProfile` | `id`, `userId`, `cnhNumber`, `crlvNumber`, `status` (`PENDING`, `APPROVED`, `REJECTED`), `approvedAt` |
-| **Carteira Digital** | `Wallet` | `id`, `userId`, `tokenBalance`, `penaltyPoints`, `updatedAt` |
+| **Carteira** | `Wallet` | `id`, `userId`, `tokenBalance`, `penaltyPoints`, `updatedAt` |
+| **Ficha** | `Token` (unidade de crédito, sem entidade individual) | Saldo em `Wallet.tokenBalance`, quantidade comprada em `Order.tokensCount`, custo em `Booking.tokenCost` e quantidade de saque em `Payout.tokensCount` |
 | **Pedido de Fichas** | `Order` | `id`, `userId`, `tokensCount`, `amountCents`, `status` (`PENDING`, `COMPLETED`, `CANCELLED`), `createdAt` |
 | **Pagamento (Gateway)** | `Payment` | `id`, `orderId`, `gatewayPaymentId`, `method` (`PIX`, `CREDIT_CARD`), `amountCents`, `status` (`PENDING`, `PAID`, `FAILED`, `REFUNDED`), `paidAt` |
 | **Saque Condutor** | `Payout` | `id`, `userId`, `tokensCount`, `amountCents`, `pixKey`, `status` (`PENDING`, `COMPLETED`, `REJECTED`), `requestedAt`, `processedAt` |
 | **Ponto de Encontro** | `MeetingPoint` | `id`, `name`, `address`, `latitude`, `longitude`, `isActive`, `createdAt` |
 | **Carona** | `Ride` | `id`, `driverId`, `meetingPointId`, `direction` (`TO_CAMPUS`, `FROM_CAMPUS`), `departureTime`, `totalSeats`, `status` (`SCHEDULED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`, `EXPIRED`) |
+| **Sentido** | `Ride.direction` | `TO_CAMPUS` (ida ao campus) e `FROM_CAMPUS` (volta do campus) |
+| **Vaga** | Capacidade em `Ride.totalSeats`; disponibilidade em `Ride.availableSeats` (calculada) | `totalSeats` e reservas que ocupam assentos; sem entidade `Seat` |
 | **Reserva** | `Booking` | `id`, `rideId`, `passengerId`, `tokenCost`, `status` (`PENDING`, `CONFIRMED`, `CANCELLED`, `COMPLETED`, `NO_SHOW`), `createdAt` |
 | **Contestação** | `Dispute` | `id`, `bookingId`, `reason`, `status` (`OPEN`, `RESOLVED_REFUND`, `DISMISSED`), `adminNotes`, `createdAt` |
 
-*Nota arquitetural:* `availableSeats` em `Ride` é um atributo **calculado em tempo de execução** ($\text{totalSeats} - \text{bookings ativos}$), e o passageiro da contestação é acessado via `Dispute -> Booking -> passengerId`, evitando redundâncias e garantindo a 3ª Forma Normal.
+**Papéis aprovados:** `User.roles` permite representar passageiro e condutor na mesma conta. `DriverProfile` guarda a homologação; possuir o papel `DRIVER` não substitui a aprovação do perfil. Os papéis não removem as restrições do PRD, inclusive a proibição de o administrador participar de caronas. Na Entrega 2, os papéis serão simulados como coleção no JSON; a persistência e a autorização efetiva serão definidas com o BaaS na Entrega 3.
+
+**Vagas aprovadas:** `Ride.totalSeats` guarda a capacidade ofertada. `Ride.availableSeats` é calculado como capacidade menos as reservas que ocupam assentos; não é um campo persistido nem uma entidade `Seat`. A spec da história de reservas definirá quais estados ocupam uma vaga e como evitar disputa pelo mesmo assento.
+
+**Fichas aprovadas:** `Token` é o nome técnico da unidade de crédito. As fichas são representadas por quantidades nos campos do glossário, sem uma entidade para cada unidade. Esse conceito é distinto do token JWT de autenticação. Valores monetários ficam em campos como `amountCents`; conversão, movimentações, retenção e estorno serão detalhados nas specs correspondentes.
+
+**Sentido aprovado:** `Ride.direction` usa `TO_CAMPUS` para ida ao campus e `FROM_CAMPUS` para volta do campus; não há entidade separada para o sentido.
+
+O passageiro da contestação é acessado via `Dispute -> Booking -> passengerId`, evitando redundâncias.
+
+**Relações aprovadas:** cada usuário tem uma carteira e pode ter um perfil de condutor. Pode criar vários pedidos e saques, conduzir várias caronas e fazer várias reservas. Cada pedido pode ter várias tentativas de pagamento. Cada ponto de encontro pode ser usado em várias caronas; cada carona pode receber várias reservas; cada reserva pode originar no máximo uma contestação. As relações 1:1 exigem unicidade de `Wallet.userId`, `DriverProfile.userId` e `Dispute.bookingId` na futura persistência. As referências `Ride.driverId` e `Booking.passengerId` apontam para `User.id`.
 
 ### 📊 5.2. Diagrama ER (Mermaid)
 
@@ -188,14 +205,14 @@ erDiagram
         string id PK
         string email UK
         string name
-        string role
+        string[] roles
         string status
         datetime createdAt
     }
 
     DriverProfile {
         string id PK
-        string userId FK
+        string userId FK, UK
         string cnhNumber
         string crlvNumber
         string status
@@ -204,7 +221,7 @@ erDiagram
 
     Wallet {
         string id PK
-        string userId FK
+        string userId FK, UK
         int tokenBalance
         int penaltyPoints
         datetime updatedAt
@@ -272,7 +289,7 @@ erDiagram
 
     Dispute {
         string id PK
-        string bookingId FK
+        string bookingId FK, UK
         string reason
         string status
         string adminNotes
@@ -280,37 +297,35 @@ erDiagram
     }
 ```
 
-### 🌍 5.3. O Banco por Ambiente
+### 5.3. Ambientes e segredos
 
-| Ambiente | Onde roda | Como conecta |
+| Ambiente/fase | Fonte de dados | Configuração |
 | :--- | :--- | :--- |
-| **Local** | Container Docker (`postgres:16-alpine` na porta 5432) | `postgresql://postgres:postgres@localhost:5432/utfgo?schema=public` |
-| **CI (GitHub Actions)** | Service Container PostgreSQL oficial na pipeline | Variável de ambiente `DATABASE_URL` fornecida via Action Service Container |
-| **Produção** | **Neon.tech** (PostgreSQL Serverless com Connection Pooling) | `DATABASE_URL` segura injetada na plataforma com flag `?sslmode=require&pgbouncer=true` |
+| Local — Entrega 2 | json-server servindo `mocks/db.json` | Endereço público da API em `apps/web/src/environments/` |
+| Testes | Dados simulados e isolamento das chamadas HTTP | Configuração de testes pelo setup; sem depender de BaaS ou credenciais reais |
+| Entrega 3 | BaaS a definir pela equipe | Endereço e eventual chave pública no frontend; regras de acesso no servidor |
 
-> 🔒 Credenciais e segredos **jamais** aparecem no repositório. O arquivo `.env.example` disponibiliza apenas as chaves modelo sem credenciais reais.
+O frontend é entregue ao navegador: arquivos de environment não escondem segredos. Eles guardam endereços e configuração pública. Uma chave pública do BaaS só pode entrar quando o fornecedor a destinar ao navegador, acompanhada das regras de acesso no servidor. Chaves secretas de BaaS, pagamento ou e-mail ficam exclusivamente no ambiente de servidor, fora do Git e do pacote frontend.
 
----
+O endereço da fonte de dados será exposto como `apiUrl` nos arquivos de environment em `apps/web/src/environments/`. Somente a camada de dados lê essa configuração para acessar a fonte; nenhuma credencial secreta entra nesses arquivos.
 
-## 🗺️ 6. Mapa de Domínios e Rotas
+Os dados simulados devem ser fictícios. A escolha de hospedagem, a configuração do BaaS e os mecanismos de servidor para pagamentos e regras sensíveis serão definidos na Entrega 3.
 
-> Este índice crescerá durante o desenvolvimento: **uma linha por história implementada**. As rotas e contratos nascem na spec de cada história.
+## 6. Mapa de domínios e rotas implementados
 
-| Domínio | Rota | Guard | Dados (Service / Repository) | US |
-| :------ | :--- | :---- | :--------------------------- | :- |
-| Auth | `POST /auth/otp/send`, `POST /auth/otp/verify` | `@Public()` | `AuthService`, `UsersService` | US01 |
-| Wallet / Payments | `POST /payments/orders`, `POST /payments/webhook` | `JwtAuthGuard` / `@Public()` | `PaymentsService`, `WalletService` | US02 |
+Este índice cresce uma linha por história implementada. Permanece vazio na Atividade 06.
 
----
+| Domínio | Rota | Guard | Dados (Service) | US |
+| :--- | :--- | :--- | :--- | :--- |
 
-## 📅 7. Histórico
+## 7. Histórico
 
 | Data | Versão | O que mudou |
-| :--- | :----- | :---------- |
-| 2026-10-02 | 1.0.0 | Versão inicial completa produzida via `/utf-architecture` e aprovada pelo Arquiteto. |
+| :--- | :--- | :--- |
+| 2026-10-02 | 1.0.0 | Proposta inicial de arquitetura na branch `chore/arquitetura`; revisão humana em andamento. |
 
----
+## Pendências para concluir a revisão
 
-## 🛑 O que ainda **não** está neste documento
-
-Detalhes de funcionalidade — DTOs de endpoints específicos, máquinas de estado de uma história e regras de tela — **não entram aqui**: nascem sob demanda no `spec.md` de cada história. Este documento guarda só o que vale para o sistema inteiro.
+- Conferir os atributos restantes do modelo na leitura final; os dez termos do glossário do PRD e as cardinalidades já foram revisados com a equipe.
+- Conferir o template oficial da disciplina antes do setup, diante das divergências de stack e fluxo Git nos arquivos de contexto.
+- A equipe ler o documento, realizar a tutoria de arquitetura, escrever a explicação do PR e fazer seu commit; a entrega exige o PR mesclado na `develop`.
