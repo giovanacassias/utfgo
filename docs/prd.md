@@ -90,7 +90,7 @@ Através do acompanhamento das métricas mensais do sistema: número de passagei
 - **US05 — Publicação de Carona** · `M` · Status: `Draft`
   Como condutor, quero publicar carona (sentido, data, hora, vagas, ponto) com 1h30 de antecedência mínima.
 - **US06 — Busca e Reserva de Vaga** · `M` · Status: `Draft`
-  Como passageiro, quero filtrar caronas e reter ficha para solicitar reserva, aguardando aceite (com estorno em 5min).
+  Como passageiro, quero filtrar caronas e reter ficha para solicitar reserva, aguardando aceite (cancelamento livre e estorno integral enquanto pendente).
 - **US07 — Gestão da Carona e Presença** · `M` · Status: `Draft`
   Como condutor, quero iniciar carona (após marcar presenças/ausências) e finalizá-la, disparando prazos de pagamento.
 - **US08 — Cancelamento de Reserva Confirmada** · `S` · Status: `Draft`
