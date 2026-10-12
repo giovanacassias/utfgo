@@ -18,29 +18,28 @@ O UTFgo conecta membros da comunidade acadêmica que desejam oferecer caronas a 
 
 ---
 
-## 🛠️ Stack Tecnológica
+📦 Stack Tecnológica Definida no Documento:
+Aqui está a tabela com a stack tecnológica exatamente como definida no documento:
 
-A stack tecnológica foi definida e documentada na Seção 1 do `docs/architecture.md`. Aqui está o resumo completo:
-
----
-
-### 💻 Stack Tecnológica Oficial do UTFgo
-
-| Camada | Tecnologia Escolhida | Detalhes / Padrão |
+| Camada / Componente | Tecnologia Escolhida | Versão / Detalhes de Implementação |
 | :--- | :--- | :--- |
-| **Frontend** | **Angular** | Componentes *Standalone*, reatividade via *Signals*, novo Control Flow (`@if`, `@for`), funções `input()`/`output()` e lazy loading de rotas |
-| **Estilização / UI** | **Tailwind CSS** | Padronizado com os *Design Tokens* do projeto (cores institucionais, Plus Jakarta Sans) |
-| **Backend** | **NestJS** | Arquitetura em camadas estritas (`Controllers`, `Services`, `Modules`), `DTOs` com `ValidationPipe` |
+| **Backend** | **NestJS** | v12 (Arquitetura em camadas: Controllers, Services e Modules) |
+| **Linguagem Base** | **TypeScript** | Utilizada no backend e no frontend |
 | **ORM** | **Prisma ORM** | Modelagem relacional e migrations |
-| **Banco de Dados** | **PostgreSQL** | Motor relacional |
-| **Banco Local (Dev)** | **Docker** | Executado via `docker-compose.yml` para garantir paridade de ambiente |
-| **Banco em Nuvem (Prod)** | **Vercel Postgres** | Serverless Postgres para o deploy final |
-| **Testes Automatizados** | **Vitest** | Suíte rápida unificada para front e back (`npm run test`) em substituição ao Jest |
-| **Linting** | **ESLint** | Validação estática de código (`npm run lint`) |
-| **Autenticação** | **JWT (Passwordless)** | Código de uso único (OTP) enviado por e-mail, sem senhas no banco, e Guards de perfis (`@Roles()`) |
-| **Gateway de Pagamento** | **Stripe (Sandbox)** | Compra de fichas com confirmação assíncrona via *Webhooks* (testados via Stripe CLI) |
-| **Estrutura de Repositório** | **Monorepo** (NPM Workspaces) | Divisão em `apps/api` (NestJS) e `apps/web` (Angular) sob a mesma raiz |
-
+| **Banco de Dados (Motor)** | **PostgreSQL** | v16 |
+| **Banco Local (Dev)** | **Docker** | Container `postgres:16-alpine` na porta 5432 |
+| **Banco no CI** | **GitHub Actions** | Service Container oficial do PostgreSQL |
+| **Banco em Nuvem (Prod)** | **Neon.tech** | PostgreSQL Serverless com Connection Pooling (PgBouncer) |
+| **Frontend** | **Angular** | v22 (Standalone nativo, Signals, `@if`/`@for`, `inject()`) |
+| **Estilização / UI** | **Vanilla CSS** | Estruturado via Tokens de Design (CSS Custom Properties) |
+| **Testes** | **Vitest** | Unificado para testes unitários no Frontend e Backend |
+| **Testes de Integração / E2E**| **Supertest** | Integrado ao Vitest na API |
+| **Linting** | **ESLint** | Validação estática de código (`apps/api` e `apps/web`) |
+| **Autenticação** | **JWT** | Stateless via Bearer Token (`JwtAuthGuard`) |
+| **Controle de Acesso** | **Guards de Roles** | `@Roles()` com os papéis `PASSENGER`, `DRIVER` e `ADMIN` |
+| **Gateway de Pagamento** | **Mercado Pago** | Ambiente Sandbox (Pix e BRL) com Webhooks assinados (HMAC SHA256) |
+| **Documentação da API** | **OpenAPI / Swagger** | Gerada dinamicamente via decorators e servida em `/docs` |
+| **Estrutura de Código** | **Monorepo** | Duas aplicações autônomas (`apps/api` e `apps/web`) |
 ---
 
 ## 🚀 Em Produção
