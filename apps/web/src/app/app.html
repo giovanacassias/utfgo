@@ -1,0 +1,181 @@
+<main class="min-h-screen bg-background text-text-primary p-6 md:p-10 space-y-8 max-w-5xl mx-auto">
+  <!-- Header / Identidade -->
+  <header class="border-b border-border pb-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <span class="text-caption text-tertiary font-semibold uppercase tracking-wider"
+          >Design System</span
+        >
+        <h1 class="text-title md:text-display font-extrabold text-text-primary">
+          Hello, web — UTFgo Design Tokens
+        </h1>
+        <p class="text-body text-text-secondary mt-1">
+          Página descartável de prova visual dos tokens do tema (Tailwind v4).
+        </p>
+      </div>
+      <div
+        class="hidden sm:flex items-center gap-2 px-3 py-1 bg-surface-muted rounded-full border border-border text-caption text-text-secondary"
+      >
+        <span class="w-2 h-2 rounded-full bg-success"></span>
+        Tokens Ativos
+      </div>
+    </div>
+  </header>
+
+  <!-- Seção 1: Paleta de Cores e Contraste -->
+  <section class="space-y-4">
+    <h2 class="text-title-small font-bold text-text-primary">1. Cores e Contraste Aferido</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Primary -->
+      <div
+        class="bg-primary text-on-primary p-5 rounded-card flex flex-col justify-between shadow-sm"
+      >
+        <span class="text-small font-bold">Primary</span>
+        <div class="mt-4">
+          <p class="text-body font-semibold">#FCB900</p>
+          <p class="text-caption">Contraste on-primary: 10,76:1</p>
+        </div>
+      </div>
+
+      <!-- Secondary -->
+      <div class="bg-secondary text-white p-5 rounded-card flex flex-col justify-between shadow-sm">
+        <span class="text-small font-bold">Secondary</span>
+        <div class="mt-4">
+          <p class="text-body font-semibold">#121214</p>
+          <p class="text-caption text-surface-muted">Texto e superfícies escuras</p>
+        </div>
+      </div>
+
+      <!-- Tertiary -->
+      <div
+        class="bg-tertiary text-on-tertiary p-5 rounded-card flex flex-col justify-between shadow-sm"
+      >
+        <span class="text-small font-bold">Tertiary</span>
+        <div class="mt-4">
+          <p class="text-body font-semibold">#4D327F</p>
+          <p class="text-caption">Contraste on-tertiary: 9,20:1</p>
+        </div>
+      </div>
+
+      <!-- Surface Muted -->
+      <div
+        class="bg-surface-muted text-text-primary p-5 rounded-card border border-border flex flex-col justify-between"
+      >
+        <span class="text-small font-bold">Surface Muted</span>
+        <div class="mt-4">
+          <p class="text-body font-semibold">#F4F4F6</p>
+          <p class="text-caption text-text-secondary">Superfícies e campos</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedback e Avisos -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+      <!-- Success -->
+      <div class="bg-white p-4 rounded-card border border-border flex items-center gap-3">
+        <div
+          class="w-10 h-10 rounded-full bg-success flex items-center justify-center text-white font-bold"
+        >
+          ✓
+        </div>
+        <div>
+          <p class="text-small font-semibold text-text-primary">Sucesso</p>
+          <p class="text-caption text-text-secondary">#419146</p>
+        </div>
+      </div>
+
+      <!-- Warning Surface -->
+      <div
+        class="bg-warning-surface p-4 rounded-card border border-primary/30 flex items-center gap-3"
+      >
+        <div
+          class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold"
+        >
+          !
+        </div>
+        <div>
+          <p class="text-small font-semibold text-text-primary">Aviso</p>
+          <p class="text-caption text-text-secondary">#FFFBEB (fundo)</p>
+        </div>
+      </div>
+
+      <!-- Danger Surface -->
+      <div
+        class="bg-danger-surface p-4 rounded-card border border-danger/30 flex items-center gap-3"
+      >
+        <div
+          class="w-10 h-10 rounded-full bg-danger flex items-center justify-center text-white font-bold"
+        >
+          ✕
+        </div>
+        <div>
+          <p class="text-small font-semibold text-danger">Falha / Erro</p>
+          <p class="text-caption text-text-secondary">#E42828</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seção 2: Estados de Botões e Controles -->
+  <section class="space-y-4">
+    <h2 class="text-title-small font-bold text-text-primary">
+      2. Botões e Controles (Altura 48px, Raio 12px)
+    </h2>
+    <div class="flex flex-wrap gap-4 items-center">
+      <!-- Botão Primário -->
+      <button
+        type="button"
+        class="h-12 px-6 bg-primary hover:bg-primary-hover text-on-primary font-semibold rounded-control transition-colors cursor-pointer shadow-sm"
+      >
+        Ação Primária
+      </button>
+
+      <!-- Botão Secundário / Escuro -->
+      <button
+        type="button"
+        class="h-12 px-6 bg-secondary text-white font-semibold rounded-control transition-colors cursor-pointer shadow-sm"
+      >
+        Ação Secundária
+      </button>
+
+      <!-- Botão Terciário / Roxo -->
+      <button
+        type="button"
+        class="h-12 px-6 bg-tertiary text-on-tertiary font-semibold rounded-control transition-colors cursor-pointer shadow-sm"
+      >
+        Seleção / Acento
+      </button>
+
+      <!-- Controle Desabilitado -->
+      <button
+        type="button"
+        disabled
+        class="h-12 px-6 bg-control-disabled text-text-secondary font-medium rounded-control cursor-not-allowed"
+      >
+        Desabilitado
+      </button>
+    </div>
+  </section>
+
+  <!-- Seção 3: Escala Tipográfica -->
+  <section class="space-y-4 border-t border-border pt-6">
+    <h2 class="text-title-small font-bold text-text-primary">
+      3. Escala Tipográfica (Plus Jakarta Sans)
+    </h2>
+    <div class="bg-surface-muted rounded-card p-6 border border-border space-y-3">
+      <p class="text-title font-bold">Título de Tela (24px / 32px)</p>
+      <p class="text-title-small font-semibold">Título de Seção (20px / 28px)</p>
+      <p class="text-body">
+        Texto Corrido / Body — UTFgo caronas universitárias seguras e sustentáveis (16px / 24px).
+      </p>
+      <p class="text-small text-text-secondary">
+        Texto Auxiliar / Small — Rótulos e metadados secundários (14px / 20px).
+      </p>
+      <p class="text-caption text-text-secondary">
+        Legendas e Metadados / Caption — Atualizado em tempo real (12px / 16px).
+      </p>
+    </div>
+  </section>
+
+  <router-outlet></router-outlet>
+</main>
