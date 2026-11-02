@@ -1,0 +1,23 @@
+{
+  "name": "utfgo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "start": "npm --workspace=apps/web run start",
+    "build": "npm --workspace=apps/web run build",
+    "test": "npm --workspace=apps/web run test -- --watch=false",
+    "test:watch": "npm --workspace=apps/web run test",
+    "lint": "npm --workspace=apps/web run lint",
+    "format": "prettier --write \"**/*.{ts,js,json,html,css,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,html,css,md}\""
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.20.0",
+    "prettier": "^3.8.1",
+    "typescript-eslint": "^8.72.1"
+  }
+}
