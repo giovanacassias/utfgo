@@ -1,0 +1,75 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Font Family */
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+
+  /* Typography scale */
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.25rem;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.5rem;
+
+  --text-title-small: 1.25rem;
+  --text-title-small--line-height: 1.75rem;
+
+  --text-title: 1.5rem;
+  --text-title--line-height: 2rem;
+
+  --text-display: 2.5rem;
+  --text-display--line-height: 3rem;
+
+  --text-brand: 4rem;
+  --text-brand--line-height: 1;
+
+  /* Colors */
+  --color-primary: #fcb900;
+  --color-primary-hover: #e5a800;
+  --color-on-primary: #121214;
+
+  --color-secondary: #121214;
+  --color-tertiary: #4d327f;
+  --color-on-tertiary: #f4f4f6;
+
+  --color-background: #ffffff;
+  --color-surface-muted: #f4f4f6;
+
+  --color-text-primary: #121214;
+  --color-text-secondary: #5f5e60;
+
+  --color-border: #e2e2e4;
+
+  --color-danger: #e42828;
+  --color-danger-surface: #fff1f0;
+
+  --color-success: #419146;
+  --color-warning-surface: #fffbeb;
+  --color-control-disabled: #eeeef0;
+
+  /* Spacing base scale */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-7: 28px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+
+  /* Radius / Shapes */
+  --radius-control: 12px;
+  --radius-card: 16px;
+  --radius-full: 9999px;
+
+  /* Breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
