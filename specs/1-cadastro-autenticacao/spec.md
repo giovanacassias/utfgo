@@ -1,6 +1,6 @@
 ---
 issue: 1
-status: rascunho   # rascunho | aprovada
+status: aprovada   # rascunho | aprovada
 ---
 
 # Spec — US01: Cadastro e Autenticação de Usuário + Casca do App
