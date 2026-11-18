@@ -4,17 +4,14 @@ export const AUTH_ROUTES: Routes = [
   {
     path: '',
     pathMatch: 'full',
+    title: 'UTFgo | Carona universitária',
     loadComponent: () =>
-      import('./pages/route-placeholder/route-placeholder.page').then(
-        (module) => module.RoutePlaceholderPage,
-      ),
+      import('./pages/landing/landing.page').then((module) => module.LandingPage),
   },
   {
     path: 'entrar',
-    loadComponent: () =>
-      import('./pages/route-placeholder/route-placeholder.page').then(
-        (module) => module.RoutePlaceholderPage,
-      ),
+    title: 'Entrar | UTFgo',
+    loadComponent: () => import('./pages/login/login.page').then((module) => module.LoginPage),
   },
   {
     path: 'criar-conta',

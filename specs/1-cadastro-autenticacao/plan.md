@@ -50,7 +50,7 @@
   - Teste primeiro: prova que tocar ou pressionar o botão `☰` abre a gaveta lateral exibindo os links de navegação, que link/botão/backdrop/`Escape` fecham a gaveta, que o foco permanece nela e que a transição de 1023 px para 1024 px encaminha o foco para a sidebar desktop.
   - Arquivos previstos: `apps/web/src/app/app.html`, `apps/web/src/app/core/layout/app-shell/app-shell.component.ts`, `apps/web/src/app/core/layout/app-shell/app-shell.component.html`, `apps/web/src/app/core/layout/app-shell/app-shell.component.spec.ts`
 
-- [ ] **Tarefa 6 — Telas de Landing (`/`) e Login por E-mail (`/entrar`)**
+- [x] **Tarefa 6 — Telas de Landing (`/`) e Login por E-mail (`/entrar`)**
   - Cobre: `CA5`, `CA7`, `CA11`, `CA13`, `CA15`, `CA16`
   - Teste primeiro: prova a navegação dos botões da landing para `/entrar` e `/criar-conta`, e no login valida e-mail institucional, exibe erros de domínio/não cadastrado/conta bloqueada/rede e navega para `/validar-codigo` no sucesso.
   - Arquivos previstos: `apps/web/src/app/features/auth/pages/landing/landing.page.ts`, `apps/web/src/app/features/auth/pages/login/login.page.ts`, `apps/web/src/app/features/auth/auth.routes.ts` e respectivos `.spec.ts`
