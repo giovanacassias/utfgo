@@ -55,7 +55,7 @@
   - Teste primeiro: prova a navegação dos botões da landing para `/entrar` e `/criar-conta`, e no login valida e-mail institucional, exibe erros de domínio/não cadastrado/conta bloqueada/rede e navega para `/validar-codigo` no sucesso.
   - Arquivos previstos: `apps/web/src/app/features/auth/pages/landing/landing.page.ts`, `apps/web/src/app/features/auth/pages/login/login.page.ts`, `apps/web/src/app/features/auth/auth.routes.ts` e respectivos `.spec.ts`
 
-- [ ] **Tarefa 7 — Tela de Cadastro (`/criar-conta`)**
+- [x] **Tarefa 7 — Tela de Cadastro (`/criar-conta`)**
   - Cobre: `CA5`, `CA6`, `CA11`, `CA12`, `CA16`
   - Teste primeiro: prova bloqueio por campos obrigatórios vazios, e-mail fora da allowlist ou já cadastrado, e avanço para `/validar-codigo` mantendo os dados pendentes quando válido.
   - Arquivos previstos: `apps/web/src/app/features/auth/pages/register/register.page.ts`, `apps/web/src/app/features/auth/pages/register/register.page.spec.ts`, `apps/web/src/app/features/auth/auth.routes.ts`

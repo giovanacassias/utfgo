@@ -15,10 +15,8 @@ export const AUTH_ROUTES: Routes = [
   },
   {
     path: 'criar-conta',
-    loadComponent: () =>
-      import('./pages/route-placeholder/route-placeholder.page').then(
-        (module) => module.RoutePlaceholderPage,
-      ),
+    title: 'Criar conta | UTFgo',
+    loadComponent: () => import('./pages/register/register.page').then((module) => module.RegisterPage),
   },
   {
     path: 'validar-codigo',
