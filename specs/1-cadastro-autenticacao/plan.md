@@ -30,7 +30,7 @@
   - Teste primeiro: prova que um PIN de 6 dígitos válido dentro de 10 minutos autentica o usuário (criando a conta no fluxo de cadastro) e persiste a sessão; prova que PIN incompleto, incorreto ou expirado falha sem autenticar; e prova que o logout limpa a sessão.
   - Arquivos previstos: `apps/web/src/app/core/auth/auth.service.ts`, `apps/web/src/app/core/auth/auth.service.spec.ts`
 
-- [ ] **Tarefa 3 — Guarda de Rotas (`authGuard`) e Roteamento Base (`app.routes.ts`)**
+- [x] **Tarefa 3 — Guarda de Rotas (`authGuard`) e Roteamento Base (`app.routes.ts`)**
   - Cobre: `CA1`, `CA4`
   - Teste primeiro: prova que visitante não autenticado acessando `/inicio` é redirecionado para `/entrar` e que usuário autenticado acessa a rota filha dentro da casca.
   - Arquivos previstos: `apps/web/src/app/core/auth/auth.guard.ts`, `apps/web/src/app/core/auth/auth.guard.spec.ts`, `apps/web/src/app/app.routes.ts`
