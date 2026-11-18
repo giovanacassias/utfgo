@@ -50,8 +50,11 @@ Despache **revisor-conformidade** e **revisor-codigo** na **mesma mensagem**, pa
 
 - caminho do `spec.md`
 - número e texto literal da tarefa
-- o comando de diff exato: `git diff <SHA-do-passo-0>..HEAD`
+- o comando de diff exato contra a base da tarefa: `git diff <SHA-do-passo-0>` enquanto os arquivos ainda estão no working tree; se os arquivos já estiverem preparados, `git diff --cached <SHA-do-passo-0>`
+- a instrução para incluir arquivos não rastreados: listar com `git status --short` e ler os arquivos não rastreados diretamente; ou prepará-los antes e usar `git diff --cached <SHA-do-passo-0>`
 - o comando para rodar os testes
+
+> **Importante:** não use `git diff <SHA-do-passo-0>..HEAD` nesta etapa. Esse intervalo compara apenas commits e pode ficar vazio enquanto a implementação correta ainda está no working tree.
 
 Antes de despachar, não emita opinião sobre o código. O parecer deles precisa ser independente do seu.
 

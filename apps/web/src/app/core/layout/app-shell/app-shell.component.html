@@ -1,0 +1,65 @@
+<div data-app-shell-root class="min-h-screen bg-background text-text-primary lg:pl-62">
+  <aside
+    data-app-shell-sidebar
+    class="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-62 lg:flex-col lg:border-r lg:border-border lg:bg-background"
+  >
+    <div class="flex flex-1 flex-col gap-8 p-6">
+      <a class="text-brand font-extrabold text-secondary" routerLink="/inicio">UTFgo</a>
+
+      <nav aria-label="Navegação principal" class="flex flex-col gap-2">
+        <span class="text-caption font-semibold uppercase text-text-secondary">Navegação</span>
+        @for (item of navigationItems; track item.path) {
+          <a
+            class="rounded-control px-4 py-3 text-small font-semibold text-text-secondary"
+            [routerLink]="item.path"
+            routerLinkActive="bg-tertiary text-on-tertiary"
+          >
+            {{ item.label }}
+          </a>
+        }
+      </nav>
+
+      <div class="mt-auto flex flex-col gap-4">
+        <div class="border-t border-border pt-4 text-small text-text-secondary">
+          <p class="font-semibold text-text-primary">Perfil ativo</p>
+          <p>Passageiro</p>
+        </div>
+        <button
+          data-app-shell-logout
+          type="button"
+          class="rounded-control px-4 py-3 text-left text-small font-semibold text-danger"
+          (click)="logout()"
+        >
+          Sair
+        </button>
+      </div>
+    </div>
+
+    <footer
+      data-app-shell-footer
+      class="border-t border-border p-6 text-caption text-text-secondary"
+    >
+      <p>Acesso institucional UTFPR</p>
+      <p>Ajuda e suporte</p>
+    </footer>
+  </aside>
+
+  <div class="flex min-h-screen flex-col">
+    <header
+      data-app-shell-header
+      class="flex min-h-12 items-center justify-between border-b border-border px-6 py-4 lg:px-10"
+    >
+      <div>
+        <p class="text-caption font-semibold uppercase text-text-secondary">
+          {{ activeNavigationItem().label }}
+        </p>
+        <h1 class="text-title font-bold">Olá, {{ session()?.user?.name }}</h1>
+      </div>
+      <div class="text-small text-text-secondary">0 fichas</div>
+    </header>
+
+    <main class="flex-1 px-6 py-8 lg:px-10">
+      <router-outlet />
+    </main>
+  </div>
+</div>
