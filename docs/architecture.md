@@ -32,7 +32,7 @@
 - **ORM:** Prisma ORM.
 - **Banco de Dados Relacional:** PostgreSQL 16.
 - **Frontend:** Angular (v22).
-- **Estilo:** Vanilla CSS moderno estruturado com tokens de design (CSS Custom Properties).
+- **Estilo:** Tailwind CSS v4 com tokens semânticos definidos em `apps/web/src/styles.css` via `@theme`.
 - **Testes:** **Vitest** unificado para Backend e Frontend, com **Supertest** para testes de integração/e2e na API.
 
 ### 🎯 2.1. Padrões de Código do Frontend (Angular v22)
@@ -42,7 +42,7 @@
 - **Inputs e Outputs Reativos:** Uso de funções reativas `input()` e `output()`.
 - **Injeção de Dependências:** Uso exclusivo da função funcional `inject()`, abolindo a injeção em construtores.
 - **Roteamento:** Lazy loading configurado por rotas de feature via `loadComponent` ou `loadChildren`.
-- **Regra de Ouro da Camada de Dados:** **Componente não fala com o servidor.** Todo acesso à API NestJS passa obrigatoriamente por uma camada de serviços/repositórios dedicada. Mudanças de contrato afetam apenas essa camada, nunca a interface gráfica.
+- **Regra de Ouro da Camada de Dados:** **Componente não fala com o servidor.** Todo acesso à API passa obrigatoriamente por uma camada de serviços/repositórios dedicada. No MVP da US01, o frontend usa `HttpClient` contra o `json-server` local; mudanças de contrato afetam apenas essa camada, nunca a interface gráfica.
 
 ### 🧱 2.2. Backend — Regras Estruturais (IDs da Disciplina)
 - **Separação Estrita de Camadas (ID6):**
@@ -72,22 +72,20 @@
 
 ### 🧪 2.4. Comandos Exatos de Testes e Lint
 - **Backend (`apps/api`):**
-  - Execução de testes: `npm test` (executa `vitest run`)
-  - Testes em modo watch (TDD): `npm run test:watch` (executa `vitest`)
-  - Linting: `npm run lint` (executa `eslint "{src,apps,libs,test}/**/*.ts"`)
+  - Mock local: `npm run api` (executa `node apps/api/server.cjs` na porta `3000`)
 - **Frontend (`apps/web`):**
   - Execução de testes: `npm test` (executa `ng test --watch=false`)
   - Testes em modo watch (TDD): `npm run test:watch` (executa `ng test`)
-  - Linting: `npm run lint` (executa `ng lint`)
+  - Linting: `npm run lint` (executa `eslint src`)
 - **Raiz do Monorepo (para CI / GitHub Actions — ID18):**
-  - Testes completos: `npm test` (executa os testes em `apps/api` e `apps/web`)
-  - Lint completo: `npm run lint` (executa o lint em `apps/api` e `apps/web`)
+  - Testes do frontend nesta etapa: `npm test` (delegado a `apps/web`)
+  - Lint do frontend nesta etapa: `npm run lint` (delegado a `apps/web`)
 
 ---
 
 ## 🗂️ 3. Estrutura do Repositório (Monorepo)
 
-> Monorepo com duas aplicações autônomas (`apps/api` e `apps/web`), cada uma com seu próprio `package.json`. A estrutura de diretórios é materializada previamente no setup para evidenciar a arquitetura.
+> Monorepo com duas aplicações autônomas (`apps/api` e `apps/web`). O frontend é um workspace npm com `package.json` próprio; o mock da API é executado pelo script `api` definido no `package.json` da raiz. A estrutura de diretórios é materializada previamente no setup para evidenciar a arquitetura.
 
 ```text
 .
@@ -97,32 +95,18 @@
 ├── docs/                    # prd.md, architecture.md, checklist.md
 ├── specs/                   # Especificações, planos e revisões por história
 └── apps/
-    ├── api/                 # Backend NestJS + Prisma
-    │   ├── prisma/
-    │   │   ├── schema.prisma
-    │   │   └── migrations/
-    │   ├── src/
-    │   │   ├── common/      # Interceptors, Filters, Guards, Decorators
-    │   │   ├── config/      # ConfigModule e validação fail-fast com class-validator
-    │   │   ├── prisma/      # PrismaService
-    │   │   ├── modules/     # Módulos por domínio do PRD
-    │   │   │   ├── auth/
-    │   │   │   ├── users/
-    │   │   │   ├── wallet/
-    │   │   │   ├── payments/
-    │   │   │   ├── rides/
-    │   │   │   ├── bookings/
-    │   │   │   ├── meeting-points/
-    │   │   │   └── disputes/
-    │   │   ├── app.module.ts
-    │   │   └── main.ts
-    │   ├── test/            # Suítes de integração/e2e com Supertest + Vitest
-    │   ├── package.json
-    │   └── tsconfig.json
+    ├── api/                 # Mock json-server do MVP; backend real fica para evolução futura
+    │   ├── db.json          # Seed local de usuários da US01
+    │   ├── server.cjs       # Rota de OTP simulado + router json-server
+    │   └── README.md
     └── web/                 # Frontend Angular 22 Standalone
+        ├── .postcssrc.json  # Plugin oficial do Tailwind CSS v4
+        ├── proxy.conf.json  # Proxy de /api para o mock local
         ├── src/
         │   ├── app/
-        │   │   ├── core/    # Interceptors HTTP (JWT), Guards de rotas, API client
+        │   │   ├── core/    # Services, guards, layout e modelos compartilhados
+        │   │   │   ├── auth/    # AuthService e testes do fluxo de autenticação
+        │   │   │   └── models/  # User, RegistrationData, OtpChallenge e AuthSession
         │   │   ├── shared/  # Componentes reutilizáveis, pipes e diretivas
         │   │   └── features/# Módulos verticais por funcionalidade (lazy-loaded)
         │   │       ├── auth/
@@ -144,6 +128,8 @@
 - **Organização por Feature:** Cada pasta em `src/app/features/` agrupa as páginas (Smart Components), componentes de apresentação (Dumb Components) e a camada de serviço/repositório específica daquele domínio.
 - **Isolamento de Requisições:** Telas e componentes visuais jamais injetam clientes HTTP ou efetuam `fetch`. Eles consomem Signals providos pelos serviços da feature.
 - **Roteamento Modular:** O arquivo de rotas principal (`app.routes.ts`) apenas mapeia caminhos para as rotas das features com `loadChildren` ou `loadComponent`.
+- **Tema visual:** `apps/web/.postcssrc.json` habilita `@tailwindcss/postcss`; `apps/web/src/styles.css` importa Tailwind CSS v4 e declara a paleta, tipografia, espaçamento, raios e breakpoints semânticos no bloco `@theme`; templates usam as classes geradas por esses tokens.
+- **Mock local da US01:** `apps/api/server.cjs` serve `apps/api/db.json` na porta `3000`; o proxy de desenvolvimento `apps/web/proxy.conf.json` remove o prefixo `/api` e encaminha as chamadas do frontend.
 
 ---
 

@@ -1,0 +1,28 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "name": "Passageiro Ativo",
+      "email": "ativo@alunos.utfpr.edu.br",
+      "campus": "Curitiba",
+      "role": "PASSENGER",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "2",
+      "name": "Passageiro Suspenso",
+      "email": "suspenso@alunos.utfpr.edu.br",
+      "campus": "Curitiba",
+      "role": "PASSENGER",
+      "status": "SUSPENDED"
+    },
+    {
+      "id": "3",
+      "name": "Passageiro Banido",
+      "email": "banido@alunos.utfpr.edu.br",
+      "campus": "Curitiba",
+      "role": "PASSENGER",
+      "status": "BANNED"
+    }
+  ]
+}
