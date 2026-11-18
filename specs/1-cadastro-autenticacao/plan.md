@@ -20,7 +20,7 @@
 
 ## 2. Tarefas de Implementação (TDD)
 
-- [ ] **Tarefa 1 — Serviço de Autenticação: allowlist institucional e envio/reenvio de OTP**
+- [x] **Tarefa 1 — Serviço de Autenticação: allowlist institucional e envio/reenvio de OTP**
   - Cobre: `CA6`, `CA7`, `CA8`, `CA11`, `CA12`, `CA13`, `CA15`, `CA16`
   - Teste primeiro: valida aceitação apenas da allowlist (`@alunos.utfpr.edu.br`, `@utfpr.edu.br`), bloqueio de e-mail inválido/não cadastrado no login/duplicado no cadastro/conta `SUSPENDED` ou `BANNED`, geração e reenvio de OTP de 6 dígitos (validade de 10 min) e tratamento de erro de rede via `HttpTestingController`.
   - Arquivos previstos: `apps/web/src/app/core/models/auth.model.ts`, `apps/web/src/app/core/auth/auth.service.ts`, `apps/web/src/app/core/auth/auth.service.spec.ts`
