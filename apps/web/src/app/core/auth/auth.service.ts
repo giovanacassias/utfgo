@@ -1,11 +1,18 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, catchError, map, switchMap, throwError } from 'rxjs';
+import { Observable, catchError, map, of, switchMap, throwError } from 'rxjs';
 
-import { OtpChallenge, OtpPurpose, RegistrationData, User } from '../models/auth.model';
+import {
+  AuthSession,
+  OtpChallenge,
+  OtpPurpose,
+  RegistrationData,
+  User,
+} from '../models/auth.model';
 
 const API_URL = '/api';
 const OTP_VALIDITY_MS = 10 * 60 * 1000;
+const SESSION_STORAGE_KEY = 'utfgo.auth.session';
 const INSTITUTIONAL_EMAIL_ERROR = 'Informe um e-mail institucional da UTFPR.';
 const NETWORK_ERROR = 'Não foi possível enviar o código. Verifique sua conexão e tente novamente.';
 
@@ -13,8 +20,56 @@ const NETWORK_ERROR = 'Não foi possível enviar o código. Verifique sua conex�
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly currentChallenge = signal<OtpChallenge | null>(null);
+  private readonly sessionState = signal<AuthSession | null>(this.restoreSession());
 
   readonly pendingRegistration = signal<RegistrationData | null>(null);
+  readonly session = this.sessionState.asReadonly();
+
+  confirmOtp(code: string): Observable<AuthSession> {
+    const challenge = this.currentChallenge();
+    if (!challenge) {
+      return throwError(() => new Error('Solicite um código antes de confirmar.'));
+    }
+    if (code.length !== 6) {
+      return throwError(() => new Error('O código deve ter 6 dígitos.'));
+    }
+    if (Date.now() >= new Date(challenge.expiresAt).getTime()) {
+      return throwError(() => new Error('Este código expirou. Solicite um novo.'));
+    }
+    if (code !== challenge.code) {
+      return throwError(() => new Error('O código informado é inválido.'));
+    }
+
+    if (challenge.purpose === 'LOGIN') {
+      return this.findUsersByEmail(challenge.email).pipe(
+        map((users) => this.requireLoginUser(users)),
+        switchMap((user) => this.authenticate(user)),
+      );
+    }
+
+    const registration = this.pendingRegistration();
+    if (!registration) {
+      return throwError(() => new Error('Os dados do cadastro não estão mais disponíveis.'));
+    }
+
+    const userData = {
+      ...registration,
+      role: 'PASSENGER' as const,
+      status: 'ACTIVE' as const,
+    };
+
+    return this.http.post<User>(`${API_URL}/users`, userData).pipe(
+      catchError(() => throwError(() => new Error(NETWORK_ERROR))),
+      switchMap((user) => this.authenticate(user, true)),
+    );
+  }
+
+  logout(): void {
+    localStorage.removeItem(SESSION_STORAGE_KEY);
+    this.currentChallenge.set(null);
+    this.pendingRegistration.set(null);
+    this.sessionState.set(null);
+  }
 
   isInstitutionalEmail(email: string): boolean {
     const normalizedEmail = email.trim().toLowerCase();
@@ -139,6 +194,55 @@ export class AuthService {
         return challenge;
       }),
       catchError(() => throwError(() => new Error(NETWORK_ERROR))),
+    );
+  }
+
+  private authenticate(user: User, clearPendingRegistration = false): Observable<AuthSession> {
+    const session: AuthSession = {
+      user,
+      token: `utfgo-session-${user.id}`,
+    };
+    this.sessionState.set(session);
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+    this.currentChallenge.set(null);
+    if (clearPendingRegistration) {
+      this.pendingRegistration.set(null);
+    }
+    return of(session);
+  }
+
+  private restoreSession(): AuthSession | null {
+    const serializedSession = localStorage.getItem(SESSION_STORAGE_KEY);
+    if (!serializedSession) {
+      return null;
+    }
+
+    try {
+      const parsedSession: unknown = JSON.parse(serializedSession);
+      return this.isAuthSession(parsedSession) ? parsedSession : null;
+    } catch {
+      localStorage.removeItem(SESSION_STORAGE_KEY);
+      return null;
+    }
+  }
+
+  private isAuthSession(value: unknown): value is AuthSession {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const candidate = value as Partial<AuthSession>;
+    const user = candidate.user;
+    return (
+      typeof candidate.token === 'string' &&
+      !!user &&
+      typeof user === 'object' &&
+      typeof user.id === 'string' &&
+      typeof user.name === 'string' &&
+      typeof user.email === 'string' &&
+      typeof user.campus === 'string' &&
+      ['PASSENGER', 'DRIVER', 'ADMIN'].includes(user.role ?? '') &&
+      ['ACTIVE', 'SUSPENDED', 'BANNED'].includes(user.status ?? '')
     );
   }
 

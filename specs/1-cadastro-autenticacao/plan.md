@@ -25,7 +25,7 @@
   - Teste primeiro: valida aceitação apenas da allowlist (`@alunos.utfpr.edu.br`, `@utfpr.edu.br`), bloqueio de e-mail inválido/não cadastrado no login/duplicado no cadastro/conta `SUSPENDED` ou `BANNED`, geração e reenvio de OTP de 6 dígitos (validade de 10 min) e tratamento de erro de rede via `HttpTestingController`.
   - Arquivos previstos: `apps/web/src/app/core/models/auth.model.ts`, `apps/web/src/app/core/auth/auth.service.ts`, `apps/web/src/app/core/auth/auth.service.spec.ts`
 
-- [ ] **Tarefa 2 — Serviço de Autenticação: validação de OTP, persistência de sessão e logout**
+- [x] **Tarefa 2 — Serviço de Autenticação: validação de OTP, persistência de sessão e logout**
   - Cobre: `CA9`, `CA10`, `CA14`
   - Teste primeiro: prova que um PIN de 6 dígitos válido dentro de 10 minutos autentica o usuário (criando a conta no fluxo de cadastro) e persiste a sessão; prova que PIN incompleto, incorreto ou expirado falha sem autenticar; e prova que o logout limpa a sessão.
   - Arquivos previstos: `apps/web/src/app/core/auth/auth.service.ts`, `apps/web/src/app/core/auth/auth.service.spec.ts`
