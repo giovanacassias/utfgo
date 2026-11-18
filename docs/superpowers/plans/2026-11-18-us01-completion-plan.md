@@ -102,15 +102,15 @@
 ### Task 5: Gaveta mobile
 
 **Files:**
-- Modify: `apps/web/src/app/core/layout/app-shell/app-shell.component.ts`, `.html`, `.spec.ts`.
+- Modify: `apps/web/src/app/app.html`, `apps/web/src/app/core/layout/app-shell/app-shell.component.ts`, `.html`, `.spec.ts`.
 
 **Interfaces:**
 - Consumes: `AppShellComponent` da Tarefa 4.
 - Produces: estado local `drawerOpen` e eventos de abrir, fechar por backdrop/botão e fechar após navegação.
 
-- [ ] **Step 1: Escrever testes RED** para botão `☰`, links dentro da gaveta, fechamento por link e fechamento por backdrop.
+- [ ] **Step 1: Escrever testes RED** para botão `☰`, links dentro da gaveta, fechamento por link/backdrop/botão/`Escape`, foco confinado e transição de 1023 px para 1024 px.
 - [ ] **Step 2: Rodar testes** — esperado: os testes falham sem o estado/eventos.
-- [ ] **Step 3: Implementar `drawerOpen = signal(false)` e renderização responsiva com breakpoint `lg` (1024px), mantendo o menu desktop fora do mobile.
+- [ ] **Step 3: Implementar `drawerOpen = signal(false)`, renderização responsiva com breakpoint `lg` (1024px), foco de teclado e fronteira raiz sem conteúdo interativo descartável, mantendo o menu desktop fora do mobile.
 - [ ] **Step 4: Rodar testes e lint** — esperado: todos verdes.
 - [ ] **Step 5: Commit** — `tarefa 5: adicionar gaveta mobile`.
 
