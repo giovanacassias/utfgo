@@ -35,12 +35,12 @@
   - Teste primeiro: prova que visitante não autenticado acessando `/inicio` é redirecionado para `/entrar` e que usuário autenticado acessa a rota filha dentro da casca.
   - Arquivos previstos: `apps/web/src/app/core/auth/auth.guard.ts`, `apps/web/src/app/core/auth/auth.guard.spec.ts`, `apps/web/src/app/app.routes.ts`
 
-- [ ] **Tarefa 4 — Casca do App: Layout Desktop Fixo, Palco Central e Logout (`AppShellComponent`)**
+- [x] **Tarefa 4 — Casca do App: Layout Desktop Fixo, Palco Central e Logout (`AppShellComponent`)**
   - Cobre: `CA1`, `CA3`, `CA10`
   - Teste primeiro: prova a renderização da barra lateral fixa com os 6 links (*Início*, *Caronas*, *Cofrinho*, *Pontos de encontro*, *Meu histórico*, *Meu perfil*), destaque do link ativo, cabeçalho com nome do usuário, `<router-outlet />`, rodapé e acionamento do botão Sair.
   - Arquivos previstos: `apps/web/src/app/core/layout/app-shell/app-shell.component.ts`, `apps/web/src/app/core/layout/app-shell/app-shell.component.html`, `apps/web/src/app/core/layout/app-shell/app-shell.component.spec.ts`
 
-- [ ] **Tarefa 4.1 — Correções pós-revisão da casca: token de largura e query string**
+- [x] **Tarefa 4.1 — Correções pós-revisão da casca: token de largura e query string**
   - Cobre: conformidade arquitetural da Tarefa 4 e título correto da rota ativa.
   - Teste primeiro: prova que o token de espaçamento usado pela largura desktop está declarado nos tokens locais e que o título da casca permanece em `Caronas` ao navegar para `/caronas?filtro=hoje`.
   - Arquivos previstos: `apps/web/src/styles.css`, `docs/design-tokens.md`, `apps/web/src/app/core/layout/app-shell/app-shell.component.ts`, `apps/web/src/app/core/layout/app-shell/app-shell.component.spec.ts`
