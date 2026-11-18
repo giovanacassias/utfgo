@@ -34,7 +34,7 @@
   - Teste primeiro (`wallet.model.spec.ts`): valida cálculo exato em centavos (`tokensToAmountCents(8) === 1600`), formatação em reais (`formatBrlFromCents(200) === 'R$ 2,00'`), constantes de negócio (`TOKEN_UNIT_PRICE_CENTS = 200`, pacotes `[1, 5, 10, 20]`, mínimo `1`, máximo `100`) e estrutura do seed inicial do `db.json` (`users`, `wallets`, `orders`, `payments` com `user-1` `ACTIVE` e `wallet-1`).
   - Arquivos previstos: `package.json`, `db.json`, `apps/web/angular.json`, `apps/web/src/environments/environment.ts`, `apps/web/src/environments/environment.development.ts`, `apps/web/src/app/app.config.ts`, `apps/web/src/app/features/wallet/models/wallet.model.ts`, `apps/web/src/app/features/wallet/models/wallet.model.spec.ts`
 
-- [ ] **Tarefa 2 — `WalletService` (parte 1): carga da carteira/extrato, bloqueio por conta e criação/retentativa de `Order` + `Payment`**
+- [x] **Tarefa 2 — `WalletService` (parte 1): carga da carteira/extrato, bloqueio por conta e criação/retentativa de `Order` + `Payment`**
   - Cobre: `CA1`, `CA2`, `CA6`, `CA10`, `CA13`, `CA14`
   - Teste primeiro (`wallet.service.spec.ts` com `HttpTestingController`): prova carregamento de `user-1`, `wallet`, `orders` e `payments` montando extrato ordenado do mais recente para o mais antigo; bloqueio quando `User.status` é `SUSPENDED` ou `BANNED`; criação de `Order` (`PENDING`, `amountCents = tokensCount * 200`) + `Payment` (`PENDING`, `gatewayPaymentId` único) sem alterar `Wallet.tokenBalance`; criação de novo `Payment` para um `orderId` `PENDING` existente sem duplicar `Order`; e tratamento de falha de rede preservando estado.
   - Arquivos previstos: `apps/web/src/app/features/wallet/services/wallet.service.ts`, `apps/web/src/app/features/wallet/services/wallet.service.spec.ts`
