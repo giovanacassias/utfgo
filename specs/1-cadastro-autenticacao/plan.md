@@ -45,7 +45,7 @@
   - Teste primeiro: prova que o token de espaçamento usado pela largura desktop está declarado nos tokens locais e que o título da casca permanece em `Caronas` ao navegar para `/caronas?filtro=hoje`.
   - Arquivos previstos: `apps/web/src/styles.css`, `docs/design-tokens.md`, `apps/web/src/app/core/layout/app-shell/app-shell.component.ts`, `apps/web/src/app/core/layout/app-shell/app-shell.component.spec.ts`
 
-- [ ] **Tarefa 5 — Casca do App: Gaveta Lateral Mobile (`☰`) (`AppShellComponent`)**
+- [x] **Tarefa 5 — Casca do App: Gaveta Lateral Mobile (`☰`) (`AppShellComponent`)**
   - Cobre: `CA2`, `CA3` e `CA3a`
   - Teste primeiro: prova que tocar ou pressionar o botão `☰` abre a gaveta lateral exibindo os links de navegação, que link/botão/backdrop/`Escape` fecham a gaveta, que o foco permanece nela e que a transição de 1023 px para 1024 px encaminha o foco para a sidebar desktop.
   - Arquivos previstos: `apps/web/src/app/app.html`, `apps/web/src/app/core/layout/app-shell/app-shell.component.ts`, `apps/web/src/app/core/layout/app-shell/app-shell.component.html`, `apps/web/src/app/core/layout/app-shell/app-shell.component.spec.ts`
