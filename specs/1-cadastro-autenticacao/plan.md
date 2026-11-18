@@ -40,6 +40,11 @@
   - Teste primeiro: prova a renderização da barra lateral fixa com os 6 links (*Início*, *Caronas*, *Cofrinho*, *Pontos de encontro*, *Meu histórico*, *Meu perfil*), destaque do link ativo, cabeçalho com nome do usuário, `<router-outlet />`, rodapé e acionamento do botão Sair.
   - Arquivos previstos: `apps/web/src/app/core/layout/app-shell/app-shell.component.ts`, `apps/web/src/app/core/layout/app-shell/app-shell.component.html`, `apps/web/src/app/core/layout/app-shell/app-shell.component.spec.ts`
 
+- [ ] **Tarefa 4.1 — Correções pós-revisão da casca: token de largura e query string**
+  - Cobre: conformidade arquitetural da Tarefa 4 e título correto da rota ativa.
+  - Teste primeiro: prova que o token de espaçamento usado pela largura desktop está declarado nos tokens locais e que o título da casca permanece em `Caronas` ao navegar para `/caronas?filtro=hoje`.
+  - Arquivos previstos: `apps/web/src/styles.css`, `docs/design-tokens.md`, `apps/web/src/app/core/layout/app-shell/app-shell.component.ts`, `apps/web/src/app/core/layout/app-shell/app-shell.component.spec.ts`
+
 - [ ] **Tarefa 5 — Casca do App: Gaveta Lateral Mobile (`☰`) (`AppShellComponent`)**
   - Cobre: `CA2`
   - Teste primeiro: prova que tocar no botão `☰` abre a gaveta lateral exibindo os links de navegação, e tocar em um link ou no botão/backdrop de fechamento fecha a gaveta.
