@@ -1,0 +1,43 @@
+{
+  "users": [
+    {
+      "id": "user-1",
+      "email": "caio@alunos.utfpr.edu.br",
+      "name": "Caio",
+      "role": "PASSENGER",
+      "status": "ACTIVE",
+      "createdAt": "2026-10-01T10:00:00.000Z"
+    }
+  ],
+  "wallets": [
+    {
+      "id": "wallet-1",
+      "userId": "user-1",
+      "tokenBalance": 10,
+      "penaltyPoints": 0,
+      "updatedAt": "2026-10-10T14:26:00.000Z"
+    }
+  ],
+  "orders": [
+    {
+      "id": "order-1",
+      "userId": "user-1",
+      "tokensCount": 10,
+      "amountCents": 2000,
+      "status": "COMPLETED",
+      "createdAt": "2026-10-10T14:25:00.000Z"
+    }
+  ],
+  "payments": [
+    {
+      "id": "pay-1",
+      "orderId": "order-1",
+      "gatewayPaymentId": "mp-pix-seed-001",
+      "method": "PIX",
+      "amountCents": 2000,
+      "status": "PAID",
+      "paidAt": "2026-10-10T14:26:00.000Z",
+      "createdAt": "2026-10-10T14:25:10.000Z"
+    }
+  ]
+}
