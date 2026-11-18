@@ -21,8 +21,6 @@ export const AUTH_ROUTES: Routes = [
   {
     path: 'validar-codigo',
     loadComponent: () =>
-      import('./pages/route-placeholder/route-placeholder.page').then(
-        (module) => module.RoutePlaceholderPage,
-      ),
+      import('./pages/verify-pin/verify-pin.page').then((module) => module.VerifyPinPage),
   },
 ];

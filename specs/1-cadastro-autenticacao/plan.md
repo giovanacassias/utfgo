@@ -60,7 +60,7 @@
   - Teste primeiro: prova bloqueio por campos obrigatórios vazios, e-mail fora da allowlist ou já cadastrado, e avanço para `/validar-codigo` mantendo os dados pendentes quando válido.
   - Arquivos previstos: `apps/web/src/app/features/auth/pages/register/register.page.ts`, `apps/web/src/app/features/auth/pages/register/register.page.spec.ts`, `apps/web/src/app/features/auth/auth.routes.ts`
 
-- [ ] **Tarefa 8 — Tela de Validação de Código OTP (`/validar-codigo`) e Início Pós-Login (`/inicio`)**
+- [x] **Tarefa 8 — Tela de Validação de Código OTP (`/validar-codigo`) e Início Pós-Login (`/inicio`)**
   - Cobre: `CA8`, `CA9`, `CA14`, `CA16`
   - Teste primeiro: prova entrada dos 6 dígitos, reenvio de código com aviso visual, mensagens de erro para PIN incompleto/inválido/expirado/falha de rede, e redirecionamento para `/inicio` exibindo *"Olá, \<Nome\>"* dentro da casca.
   - Arquivos previstos: `apps/web/src/app/features/auth/pages/verify-pin/verify-pin.page.ts`, `apps/web/src/app/features/home/home.page.ts`, `apps/web/src/app/features/auth/auth.routes.ts` e respectivos `.spec.ts`

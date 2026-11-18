@@ -17,9 +17,9 @@ export const routes: Routes = [
       ),
     children: [
       {
-        path: '',
-        loadChildren: () =>
-          import('./features/home/home.routes').then((module) => module.HOME_ROUTES),
+        path: 'inicio',
+        loadComponent: () =>
+          import('./features/home/home.page').then((module) => module.HomePage),
       },
     ],
   },

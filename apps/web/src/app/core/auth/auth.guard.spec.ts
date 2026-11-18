@@ -66,8 +66,7 @@ describe('authGuard and protected routing', () => {
     await harness.navigateByUrl('/inicio');
 
     expect(router.url).toBe('/inicio');
-    expect(
-      harness.fixture.nativeElement.querySelector('app-shell app-route-placeholder'),
-    ).not.toBeNull();
+    const shell = harness.fixture.nativeElement.querySelector('app-shell');
+    expect(shell?.textContent).toContain('Olá, Ana UTFPR');
   });
 });
