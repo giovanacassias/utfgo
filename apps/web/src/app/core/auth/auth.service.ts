@@ -8,6 +8,7 @@ import {
   OtpPurpose,
   RegistrationData,
   User,
+  Wallet,
 } from '../models/auth.model';
 
 const API_URL = '/api';
@@ -43,7 +44,12 @@ export class AuthService {
     if (challenge.purpose === 'LOGIN') {
       return this.findUsersByEmail(challenge.email).pipe(
         map((users) => this.requireLoginUser(users)),
-        switchMap((user) => this.authenticate(user)),
+        switchMap((user) => this.http.get<Wallet[]>(`${API_URL}/wallets?userId=${encodeURIComponent(user.id)}`).pipe(
+          catchError(() => throwError(() => new Error(NETWORK_ERROR))),
+          switchMap((wallets) => wallets[0]
+            ? this.authenticate(user, wallets[0])
+            : throwError(() => new Error(NETWORK_ERROR))),
+        )),
       );
     }
 
@@ -60,7 +66,18 @@ export class AuthService {
 
     return this.http.post<User>(`${API_URL}/users`, userData).pipe(
       catchError(() => throwError(() => new Error(NETWORK_ERROR))),
-      switchMap((user) => this.authenticate(user, true)),
+      switchMap((user) => this.http.post<Wallet>(`${API_URL}/wallets`, {
+        userId: user.id,
+        tokenBalance: 0,
+        penaltyPoints: 0,
+        updatedAt: new Date().toISOString(),
+      }).pipe(
+        catchError(() => this.http.delete(`${API_URL}/users/${encodeURIComponent(user.id)}`).pipe(
+          catchError(() => of(null)),
+          switchMap(() => throwError(() => new Error(NETWORK_ERROR))),
+        )),
+        switchMap((wallet) => this.authenticate(user, wallet, true)),
+      )),
     );
   }
 
@@ -197,9 +214,10 @@ export class AuthService {
     );
   }
 
-  private authenticate(user: User, clearPendingRegistration = false): Observable<AuthSession> {
+  private authenticate(user: User, wallet: Wallet, clearPendingRegistration = false): Observable<AuthSession> {
     const session: AuthSession = {
       user,
+      wallet,
       token: `utfgo-session-${user.id}`,
     };
     this.sessionState.set(session);
@@ -233,6 +251,7 @@ export class AuthService {
 
     const candidate = value as Partial<AuthSession>;
     const user = candidate.user;
+    const wallet = candidate.wallet;
     return (
       typeof candidate.token === 'string' &&
       !!user &&
@@ -241,6 +260,12 @@ export class AuthService {
       typeof user.name === 'string' &&
       typeof user.email === 'string' &&
       typeof user.campus === 'string' &&
+      !!wallet &&
+      typeof wallet.id === 'string' &&
+      wallet.userId === user.id &&
+      typeof wallet.tokenBalance === 'number' &&
+      typeof wallet.penaltyPoints === 'number' &&
+      typeof wallet.updatedAt === 'string' &&
       ['PASSENGER', 'DRIVER', 'ADMIN'].includes(user.role ?? '') &&
       ['ACTIVE', 'SUSPENDED', 'BANNED'].includes(user.status ?? '')
     );

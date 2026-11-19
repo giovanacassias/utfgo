@@ -249,7 +249,9 @@ describe('AuthService — confirmação de OTP e sessão', () => {
 
     const confirmation = firstValueFrom(service.confirmOtp(challenge.code));
     http.expectOne('/api/users?email=ana%40alunos.utfpr.edu.br').flush([activeUser]);
+    http.expectOne('/api/wallets?userId=user-1').flush([{ id: 'wallet-1', userId: 'user-1', tokenBalance: 7, penaltyPoints: 0, updatedAt: '2026-10-02T00:00:00.000Z' }]);
     const session = await confirmation;
+    expect(session.wallet?.tokenBalance).toBe(7);
 
     expect(session.user).toEqual(activeUser);
     expect(session.token).toBeTruthy();
@@ -279,6 +281,9 @@ describe('AuthService — confirmação de OTP e sessão', () => {
     });
     createRequest.flush({ id: 'user-2', ...createRequest.request.body });
 
+    const walletRequest = http.expectOne('/api/wallets');
+    expect(walletRequest.request.body).toMatchObject({ userId: 'user-2', tokenBalance: 0, penaltyPoints: 0 });
+    walletRequest.flush({ id: 'wallet-2', ...walletRequest.request.body });
     const session = await confirmation;
 
     expect(session.user).toEqual({
@@ -288,6 +293,29 @@ describe('AuthService — confirmação de OTP e sessão', () => {
       status: 'ACTIVE',
     });
     expect(service.session()).toEqual(session);
+  });
+
+  it('does not save a partial session if wallet creation fails', async () => {
+    const request = firstValueFrom(service.sendRegistrationOtp({ name: 'Bia', email: 'bia@utfpr.edu.br', campus: 'Curitiba' }));
+    http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([]);
+    http.expectOne('/api/auth/otp/send').flush({});
+    const challenge = await request;
+    const confirmation = firstValueFrom(service.confirmOtp(challenge.code));
+    http.expectOne('/api/users').flush({ id: 'user-2', name: 'Bia', email: 'bia@utfpr.edu.br', campus: 'Curitiba', role: 'PASSENGER', status: 'ACTIVE' });
+    http.expectOne('/api/wallets').error(new ProgressEvent('error'));
+    const rollback = http.expectOne('/api/users/user-2');
+    expect(rollback.request.method).toBe('DELETE');
+    rollback.flush({});
+    await expect(confirmation).rejects.toThrow();
+    expect(service.session()).toBeNull();
+    expect(localStorage.getItem('utfgo.auth.session')).toBeNull();
+
+    const retry = firstValueFrom(service.confirmOtp(challenge.code));
+    const user = http.expectOne('/api/users');
+    user.flush({ id: 'user-3', ...user.request.body });
+    const wallet = http.expectOne('/api/wallets');
+    wallet.flush({ id: 'wallet-3', ...wallet.request.body });
+    expect((await retry).wallet?.userId).toBe('user-3');
   });
 
   it('rejects an incomplete OTP without authenticating or creating a session', async () => {
@@ -334,7 +362,7 @@ describe('AuthService — confirmação de OTP e sessão', () => {
   });
 
   it('restores a persisted session when the service is instantiated again', () => {
-    const session = { user: activeUser, token: 'token-restaurado' };
+    const session = { user: activeUser, token: 'token-restaurado', wallet: { id: 'wallet-1', userId: 'user-1', tokenBalance: 7, penaltyPoints: 0, updatedAt: '2026-10-02T00:00:00.000Z' } };
     localStorage.setItem('utfgo.auth.session', JSON.stringify(session));
 
     TestBed.resetTestingModule();
@@ -343,6 +371,13 @@ describe('AuthService — confirmação de OTP e sessão', () => {
     });
 
     expect(TestBed.inject(AuthService).session()).toEqual(session);
+  });
+
+  it('rejects an old session without a wallet instead of displaying a fabricated balance', () => {
+    localStorage.setItem('utfgo.auth.session', JSON.stringify({ user: activeUser, token: 'old-token' }));
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [AuthService, provideHttpClient(), provideHttpClientTesting()] });
+    expect(TestBed.inject(AuthService).session()).toBeNull();
   });
 
   it('ignores an invalid persisted session when the service is instantiated', () => {
@@ -379,6 +414,7 @@ describe('AuthService — confirmação de OTP e sessão', () => {
     const challenge = await loginRequest;
     const confirmation = firstValueFrom(service.confirmOtp(challenge.code));
     http.expectOne('/api/users?email=ana%40alunos.utfpr.edu.br').flush([activeUser]);
+    http.expectOne('/api/wallets?userId=user-1').flush([{ id: 'wallet-1', userId: 'user-1', tokenBalance: 0, penaltyPoints: 0, updatedAt: '2026-10-02T00:00:00.000Z' }]);
     await confirmation;
 
     service.logout();

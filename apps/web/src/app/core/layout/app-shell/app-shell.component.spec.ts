@@ -128,6 +128,15 @@ describe('AppShellComponent', () => {
     expect(shell.querySelector('[data-shell-test-page]')).not.toBeNull();
   });
 
+  it('displays the persisted wallet balance in the header', async () => {
+    session.update((current) => current && ({
+      ...current,
+      wallet: { id: 'wallet-1', userId: 'user-1', tokenBalance: 7, penaltyPoints: 0, updatedAt: '2026-10-02T00:00:00.000Z' },
+    }));
+    await harness.navigateByUrl('/inicio', AppShellComponent);
+    expect(harness.fixture.nativeElement.querySelector('[data-app-shell-header]').textContent).toContain('7 fichas');
+  });
+
   it('updates the header title and keeps the parent link active on child routes', async () => {
     await harness.navigateByUrl('/caronas/detalhes', AppShellComponent);
 

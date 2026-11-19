@@ -67,6 +67,14 @@
 
 ---
 
-## 3. Critérios sem tarefa
+## 3. Correção identificada na auditoria final
+
+- [x] **Tarefa 9 — Destinos da navegação e carteira inicial**
+  - Cobre: `CA1`, `CA2` e o cenário 1 de cadastro da spec.
+  - Teste primeiro: prova que os cinco links da casca abrem rotas protegidas com conteúdo no palco central e destaque do link ativo; prova que visitante sem sessão é redirecionado. Prova também que a confirmação do cadastro cria uma carteira vinculada ao novo usuário com saldo inicial zero e que o saldo exibido corresponde à carteira persistida, incluindo falha de API sem sessão parcial.
+  - Implementação: adicionar destinos placeholder para Caronas, Cofrinho, Pontos de encontro, Meu histórico e Meu perfil; criar e carregar a carteira inicial conforme o modelo `Wallet` de `docs/architecture.md`, mantendo a compra de fichas fora de escopo.
+  - Arquivos previstos: `apps/web/src/app/app.routes.ts`, `apps/web/src/app/core/auth/auth.service.ts`, `apps/web/src/app/core/models/auth.model.ts`, `apps/web/src/app/core/layout/app-shell/`, testes correspondentes, `apps/api/db.json` e `docs/architecture.md` quando necessário.
+
+## 4. Critérios sem tarefa
 
 *(Nenhum — todos os critérios `CA1` a `CA16` estão cobertos pelas 8 tarefas acima.)*

@@ -21,6 +21,36 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/home/home.page').then((module) => module.HomePage),
       },
+      {
+        path: 'caronas',
+        data: { title: 'Caronas' },
+        loadComponent: () =>
+          import('./features/home/placeholder.page').then((module) => module.PlaceholderPage),
+      },
+      {
+        path: 'cofrinho',
+        data: { title: 'Cofrinho' },
+        loadComponent: () =>
+          import('./features/home/placeholder.page').then((module) => module.PlaceholderPage),
+      },
+      {
+        path: 'pontos-de-encontro',
+        data: { title: 'Pontos de encontro' },
+        loadComponent: () =>
+          import('./features/home/placeholder.page').then((module) => module.PlaceholderPage),
+      },
+      {
+        path: 'meu-historico',
+        data: { title: 'Meu histórico' },
+        loadComponent: () =>
+          import('./features/home/placeholder.page').then((module) => module.PlaceholderPage),
+      },
+      {
+        path: 'meu-perfil',
+        data: { title: 'Meu perfil' },
+        loadComponent: () =>
+          import('./features/home/placeholder.page').then((module) => module.PlaceholderPage),
+      },
     ],
   },
 ];

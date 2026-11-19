@@ -30,4 +30,13 @@ export interface OtpChallenge {
 export interface AuthSession {
   user: User;
   token: string;
+  wallet?: Wallet;
+}
+
+export interface Wallet {
+  id: string;
+  userId: string;
+  tokenBalance: number;
+  penaltyPoints: number;
+  updatedAt: string;
 }

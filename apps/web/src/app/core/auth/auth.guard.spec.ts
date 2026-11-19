@@ -69,4 +69,20 @@ describe('authGuard and protected routing', () => {
     const shell = harness.fixture.nativeElement.querySelector('app-shell');
     expect(shell?.textContent).toContain('Olá, Ana UTFPR');
   });
+  it.each([
+    ['/caronas', 'Caronas'], ['/cofrinho', 'Cofrinho'],
+    ['/pontos-de-encontro', 'Pontos de encontro'], ['/meu-historico', 'Meu histórico'],
+    ['/meu-perfil', 'Meu perfil'],
+  ])('protects %s and displays its active destination', async (path, label) => {
+    await harness.navigateByUrl(path);
+    expect(router.url).toBe('/entrar');
+    session.set({ token: 'token', user: { id: '1', name: 'Ana', email: 'ana@utfpr.edu.br', campus: 'Curitiba', role: 'PASSENGER', status: 'ACTIVE' } });
+    await harness.navigateByUrl(path);
+    harness.detectChanges();
+    const shell = harness.fixture.nativeElement.querySelector('app-shell');
+    expect(router.url).toBe(path);
+    expect(shell.querySelector('main').textContent).toContain(label);
+    expect(shell.querySelector(`nav a[href="${path}"]`).classList.contains('bg-tertiary')).toBe(true);
+  });
+
 });

@@ -82,7 +82,7 @@
           <h1 class="text-title font-bold">Olá, {{ session()?.user?.name }}</h1>
         </div>
       </div>
-      <div class="text-small text-text-secondary">0 fichas</div>
+      <div class="text-small text-text-secondary">{{ session()?.wallet?.tokenBalance ?? 0 }} fichas</div>
     </header>
 
     @if (drawerOpen()) {
