@@ -129,7 +129,7 @@
 - **Isolamento de Requisições:** Telas e componentes visuais jamais injetam clientes HTTP ou efetuam `fetch`. Eles consomem Signals providos pelos serviços da feature.
 - **Roteamento Modular:** O arquivo de rotas principal (`app.routes.ts`) apenas mapeia caminhos para as rotas das features com `loadChildren` ou `loadComponent`.
 - **Tema visual:** `apps/web/.postcssrc.json` habilita `@tailwindcss/postcss`; `apps/web/src/styles.css` importa Tailwind CSS v4 e declara a paleta, tipografia, espaçamento, raios e breakpoints semânticos no bloco `@theme`; templates usam as classes geradas por esses tokens.
-- **Mock local da US01:** `apps/api/server.cjs` serve `apps/api/db.json` na porta `3000`; o proxy de desenvolvimento `apps/web/proxy.conf.json` remove o prefixo `/api` e encaminha as chamadas do frontend.
+- **Mock local da US01:** `apps/api/server.cjs` serve `apps/api/db.json` na porta `3000`, garante unicidade de e-mail e criação idempotente de carteira no processo do mock; o proxy de desenvolvimento `apps/web/proxy.conf.json` remove o prefixo `/api` e encaminha as chamadas do frontend.
 
 ---
 
@@ -286,6 +286,8 @@ erDiagram
 | :------ | :--- | :---- | :--------------------------- | :- |
 | Auth | `POST /auth/otp/send`, `POST /auth/otp/verify` | `@Public()` | `AuthService`, `UsersService` | US01 |
 | Wallet / Payments | `POST /payments/orders`, `POST /payments/webhook` | `JwtAuthGuard` / `@Public()` | `PaymentsService`, `WalletService` | US02 |
+
+No MVP com `json-server`, o mock implementa `POST /auth/otp/send` e a validação do código ocorre localmente no `AuthService` do frontend. `POST /auth/otp/verify` e os guards da tabela descrevem o contrato previsto para o backend futuro, não endpoints ou mecanismos já implementados pelo mock.
 
 ---
 

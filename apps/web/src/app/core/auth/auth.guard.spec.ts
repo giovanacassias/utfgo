@@ -39,9 +39,11 @@ describe('authGuard and protected routing', () => {
 
     expect(publicRoutes.loadChildren).toEqual(expect.any(Function));
     expect(protectedRoutes?.loadComponent).toEqual(expect.any(Function));
-    expect(protectedRoutes?.children?.every((route) =>
-      route.loadComponent !== undefined || route.loadChildren !== undefined,
-    )).toBe(true);
+    expect(
+      protectedRoutes?.children?.every(
+        (route) => route.loadComponent !== undefined || route.loadChildren !== undefined,
+      ),
+    ).toBe(true);
   });
 
   it('redirects a visitor without a session from /inicio to /entrar', async () => {
@@ -70,19 +72,32 @@ describe('authGuard and protected routing', () => {
     expect(shell?.textContent).toContain('Olá, Ana UTFPR');
   });
   it.each([
-    ['/caronas', 'Caronas'], ['/cofrinho', 'Cofrinho'],
-    ['/pontos-de-encontro', 'Pontos de encontro'], ['/meu-historico', 'Meu histórico'],
+    ['/caronas', 'Caronas'],
+    ['/cofrinho', 'Cofrinho'],
+    ['/pontos-de-encontro', 'Pontos de encontro'],
+    ['/meu-historico', 'Meu histórico'],
     ['/meu-perfil', 'Meu perfil'],
   ])('protects %s and displays its active destination', async (path, label) => {
     await harness.navigateByUrl(path);
     expect(router.url).toBe('/entrar');
-    session.set({ token: 'token', user: { id: '1', name: 'Ana', email: 'ana@utfpr.edu.br', campus: 'Curitiba', role: 'PASSENGER', status: 'ACTIVE' } });
+    session.set({
+      token: 'token',
+      user: {
+        id: '1',
+        name: 'Ana',
+        email: 'ana@utfpr.edu.br',
+        campus: 'Curitiba',
+        role: 'PASSENGER',
+        status: 'ACTIVE',
+      },
+    });
     await harness.navigateByUrl(path);
     harness.detectChanges();
     const shell = harness.fixture.nativeElement.querySelector('app-shell');
     expect(router.url).toBe(path);
     expect(shell.querySelector('main').textContent).toContain(label);
-    expect(shell.querySelector(`nav a[href="${path}"]`).classList.contains('bg-tertiary')).toBe(true);
+    expect(shell.querySelector(`nav a[href="${path}"]`).classList.contains('bg-tertiary')).toBe(
+      true,
+    );
   });
-
 });

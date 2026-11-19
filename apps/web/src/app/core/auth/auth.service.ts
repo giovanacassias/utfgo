@@ -14,6 +14,7 @@ import {
 const API_URL = '/api';
 const OTP_VALIDITY_MS = 10 * 60 * 1000;
 const SESSION_STORAGE_KEY = 'utfgo.auth.session';
+const RECOVERY_STORAGE_KEY = 'utfgo.auth.registration-recovery';
 const INSTITUTIONAL_EMAIL_ERROR = 'Informe um e-mail institucional da UTFPR.';
 const NETWORK_ERROR = 'Não foi possível enviar o código. Verifique sua conexão e tente novamente.';
 
@@ -44,12 +45,16 @@ export class AuthService {
     if (challenge.purpose === 'LOGIN') {
       return this.findUsersByEmail(challenge.email).pipe(
         map((users) => this.requireLoginUser(users)),
-        switchMap((user) => this.http.get<Wallet[]>(`${API_URL}/wallets?userId=${encodeURIComponent(user.id)}`).pipe(
-          catchError(() => throwError(() => new Error(NETWORK_ERROR))),
-          switchMap((wallets) => wallets[0]
-            ? this.authenticate(user, wallets[0])
-            : throwError(() => new Error(NETWORK_ERROR))),
-        )),
+        switchMap((user) =>
+          this.http.get<Wallet[]>(`${API_URL}/wallets?userId=${encodeURIComponent(user.id)}`).pipe(
+            catchError(() => throwError(() => new Error(NETWORK_ERROR))),
+            switchMap((wallets) =>
+              wallets[0]
+                ? this.authenticate(user, wallets[0])
+                : this.createWallet(user),
+            ),
+          ),
+        ),
       );
     }
 
@@ -64,21 +69,64 @@ export class AuthService {
       status: 'ACTIVE' as const,
     };
 
+    const storedRecovery = this.registrationRecovery(registration.email);
+    const recovery = storedRecovery && {
+      id: storedRecovery.id,
+      ...registration,
+      role: 'PASSENGER' as const,
+      status: 'ACTIVE' as const,
+    };
+    if (recovery && recovery.email === registration.email) {
+      return this.findUsersByEmail(registration.email).pipe(
+        switchMap((users) => {
+          const user = users.find((candidate) => candidate.id === recovery.id);
+          if (!user) {
+            if (users.length)
+              return throwError(
+                () => new Error('Este e-mail já está cadastrado. Entre na sua conta.'),
+              );
+            return this.createRegistrationUser(recovery);
+          }
+          this.requireLoginUser([user]);
+          return this.http
+            .get<Wallet[]>(`${API_URL}/wallets?userId=${encodeURIComponent(user.id)}`)
+            .pipe(
+              catchError(() => throwError(() => new Error(NETWORK_ERROR))),
+              switchMap((wallets) =>
+                wallets[0] ? this.authenticate(user, wallets[0], true) : this.createWallet(user),
+              ),
+            );
+        }),
+      );
+    }
+
+    const newUser: User = { ...userData, id: crypto.randomUUID() };
+    localStorage.setItem(this.recoveryKey(newUser.email), JSON.stringify(newUser));
+    return this.createRegistrationUser(newUser);
+  }
+
+  private createRegistrationUser(userData: User): Observable<AuthSession> {
     return this.http.post<User>(`${API_URL}/users`, userData).pipe(
       catchError(() => throwError(() => new Error(NETWORK_ERROR))),
-      switchMap((user) => this.http.post<Wallet>(`${API_URL}/wallets`, {
+      switchMap((user) => {
+        return this.createWallet(user);
+      }),
+    );
+  }
+
+  private createWallet(user: User): Observable<AuthSession> {
+    return this.http
+      .post<Wallet>(`${API_URL}/wallets`, {
+        id: `wallet-${user.id}`,
         userId: user.id,
         tokenBalance: 0,
         penaltyPoints: 0,
         updatedAt: new Date().toISOString(),
-      }).pipe(
-        catchError(() => this.http.delete(`${API_URL}/users/${encodeURIComponent(user.id)}`).pipe(
-          catchError(() => of(null)),
-          switchMap(() => throwError(() => new Error(NETWORK_ERROR))),
-        )),
+      })
+      .pipe(
+        catchError(() => throwError(() => new Error(NETWORK_ERROR))),
         switchMap((wallet) => this.authenticate(user, wallet, true)),
-      )),
-    );
+      );
   }
 
   logout(): void {
@@ -129,7 +177,21 @@ export class AuthService {
 
     return this.findUsersByEmail(registration.email).pipe(
       map((users) => {
-        if (users.length > 0) {
+        const recovery = this.registrationRecovery(registration.email);
+        if (!users.length && recovery &&
+          (recovery.name !== registration.name || recovery.campus !== registration.campus)) {
+          localStorage.removeItem(this.recoveryKey(registration.email));
+        }
+        if (
+          users.length > 0 &&
+          !(
+            users.length === 1 &&
+            recovery?.id === users[0].id &&
+            recovery.email === registration.email &&
+            recovery.name === registration.name &&
+            recovery.campus === registration.campus
+          )
+        ) {
           throw new Error('Este e-mail já está cadastrado. Entre na sua conta.');
         }
         this.pendingRegistration.set(registration);
@@ -214,7 +276,11 @@ export class AuthService {
     );
   }
 
-  private authenticate(user: User, wallet: Wallet, clearPendingRegistration = false): Observable<AuthSession> {
+  private authenticate(
+    user: User,
+    wallet: Wallet,
+    clearPendingRegistration = false,
+  ): Observable<AuthSession> {
     const session: AuthSession = {
       user,
       wallet,
@@ -225,6 +291,7 @@ export class AuthService {
     this.currentChallenge.set(null);
     if (clearPendingRegistration) {
       this.pendingRegistration.set(null);
+      localStorage.removeItem(this.recoveryKey(user.email));
     }
     return of(session);
   }
@@ -240,6 +307,27 @@ export class AuthService {
       return this.isAuthSession(parsedSession) ? parsedSession : null;
     } catch {
       localStorage.removeItem(SESSION_STORAGE_KEY);
+      return null;
+    }
+  }
+
+  private recoveryKey(email: string): string {
+    return `${RECOVERY_STORAGE_KEY}.${encodeURIComponent(email)}`;
+  }
+
+  private registrationRecovery(email: string): User | null {
+    try {
+      const value = JSON.parse(
+        localStorage.getItem(this.recoveryKey(email)) ?? 'null',
+      ) as User | null;
+      return value &&
+        typeof value.id === 'string' &&
+        typeof value.email === 'string' &&
+        typeof value.name === 'string' &&
+        typeof value.campus === 'string'
+        ? value
+        : null;
+    } catch {
       return null;
     }
   }

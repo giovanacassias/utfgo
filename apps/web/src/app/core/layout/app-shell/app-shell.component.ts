@@ -73,9 +73,10 @@ export class AppShellComponent {
           write: () => {
             if (!this.drawerOpen()) {
               if (focusDesktopNavigation) {
-                const activeLink = this.desktopSidebar().nativeElement.querySelector<HTMLAnchorElement>(
-                  `nav a[href="${this.activeNavigationItem().path}"]`,
-                );
+                const activeLink =
+                  this.desktopSidebar().nativeElement.querySelector<HTMLAnchorElement>(
+                    `nav a[href="${this.activeNavigationItem().path}"]`,
+                  );
                 activeLink?.focus();
               } else {
                 this.menuToggle().nativeElement.focus();

@@ -5,8 +5,7 @@ import { authGuard } from './core/auth/auth.guard';
 export const routes: Routes = [
   {
     path: '',
-    loadChildren: () =>
-      import('./features/auth/auth.routes').then((module) => module.AUTH_ROUTES),
+    loadChildren: () => import('./features/auth/auth.routes').then((module) => module.AUTH_ROUTES),
   },
   {
     path: '',
@@ -18,8 +17,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'inicio',
-        loadComponent: () =>
-          import('./features/home/home.page').then((module) => module.HomePage),
+        loadComponent: () => import('./features/home/home.page').then((module) => module.HomePage),
       },
       {
         path: 'caronas',

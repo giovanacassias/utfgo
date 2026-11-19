@@ -249,7 +249,15 @@ describe('AuthService — confirmação de OTP e sessão', () => {
 
     const confirmation = firstValueFrom(service.confirmOtp(challenge.code));
     http.expectOne('/api/users?email=ana%40alunos.utfpr.edu.br').flush([activeUser]);
-    http.expectOne('/api/wallets?userId=user-1').flush([{ id: 'wallet-1', userId: 'user-1', tokenBalance: 7, penaltyPoints: 0, updatedAt: '2026-10-02T00:00:00.000Z' }]);
+    http.expectOne('/api/wallets?userId=user-1').flush([
+      {
+        id: 'wallet-1',
+        userId: 'user-1',
+        tokenBalance: 7,
+        penaltyPoints: 0,
+        updatedAt: '2026-10-02T00:00:00.000Z',
+      },
+    ]);
     const session = await confirmation;
     expect(session.wallet?.tokenBalance).toBe(7);
 
@@ -279,15 +287,19 @@ describe('AuthService — confirmação de OTP e sessão', () => {
       role: 'PASSENGER',
       status: 'ACTIVE',
     });
-    createRequest.flush({ id: 'user-2', ...createRequest.request.body });
+    createRequest.flush(createRequest.request.body);
 
     const walletRequest = http.expectOne('/api/wallets');
-    expect(walletRequest.request.body).toMatchObject({ userId: 'user-2', tokenBalance: 0, penaltyPoints: 0 });
+    expect(walletRequest.request.body).toMatchObject({
+      userId: createRequest.request.body.id,
+      tokenBalance: 0,
+      penaltyPoints: 0,
+    });
     walletRequest.flush({ id: 'wallet-2', ...walletRequest.request.body });
     const session = await confirmation;
 
     expect(session.user).toEqual({
-      id: 'user-2',
+      id: createRequest.request.body.id,
       ...registration,
       role: 'PASSENGER',
       status: 'ACTIVE',
@@ -296,26 +308,218 @@ describe('AuthService — confirmação de OTP e sessão', () => {
   });
 
   it('does not save a partial session if wallet creation fails', async () => {
-    const request = firstValueFrom(service.sendRegistrationOtp({ name: 'Bia', email: 'bia@utfpr.edu.br', campus: 'Curitiba' }));
+    const request = firstValueFrom(
+      service.sendRegistrationOtp({ name: 'Bia', email: 'bia@utfpr.edu.br', campus: 'Curitiba' }),
+    );
     http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([]);
     http.expectOne('/api/auth/otp/send').flush({});
     const challenge = await request;
     const confirmation = firstValueFrom(service.confirmOtp(challenge.code));
-    http.expectOne('/api/users').flush({ id: 'user-2', name: 'Bia', email: 'bia@utfpr.edu.br', campus: 'Curitiba', role: 'PASSENGER', status: 'ACTIVE' });
+    const create = http.expectOne('/api/users');
+    const user = create.request.body;
+    create.flush(user);
     http.expectOne('/api/wallets').error(new ProgressEvent('error'));
-    const rollback = http.expectOne('/api/users/user-2');
-    expect(rollback.request.method).toBe('DELETE');
-    rollback.flush({});
     await expect(confirmation).rejects.toThrow();
     expect(service.session()).toBeNull();
     expect(localStorage.getItem('utfgo.auth.session')).toBeNull();
 
     const retry = firstValueFrom(service.confirmOtp(challenge.code));
-    const user = http.expectOne('/api/users');
-    user.flush({ id: 'user-3', ...user.request.body });
+    http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([user]);
+    http.expectOne(`/api/wallets?userId=${user.id}`).flush([
+      {
+        id: 'wallet-2',
+        userId: user.id,
+        tokenBalance: 0,
+        penaltyPoints: 0,
+        updatedAt: '2026-01-01',
+      },
+    ]);
+    expect((await retry).wallet?.userId).toBe(user.id);
+  });
+
+  it('resumes registration after wallet creation fails and the service restarts', async () => {
+    const registration = { name: 'Bia', email: 'bia@utfpr.edu.br', campus: 'Curitiba' };
+    const request = firstValueFrom(service.sendRegistrationOtp(registration));
+    http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([]);
+    http.expectOne('/api/auth/otp/send').flush({});
+    const challenge = await request;
+    const confirmation = firstValueFrom(service.confirmOtp(challenge.code));
+    const create = http.expectOne('/api/users');
+    const user = create.request.body;
+    create.flush(user);
+    http.expectOne('/api/wallets').error(new ProgressEvent('error'));
+    await expect(confirmation).rejects.toThrow();
+    expect(service.session()).toBeNull();
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [AuthService, provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(AuthService);
+    http = TestBed.inject(HttpTestingController);
+    const resumed = firstValueFrom(service.sendRegistrationOtp(registration));
+    http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([user]);
+    http.expectOne('/api/auth/otp/send').flush({});
+    const newChallenge = await resumed;
+    const retry = firstValueFrom(service.confirmOtp(newChallenge.code));
+    http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([user]);
+    http.expectOne(`/api/wallets?userId=${user.id}`).flush([]);
     const wallet = http.expectOne('/api/wallets');
-    wallet.flush({ id: 'wallet-3', ...wallet.request.body });
-    expect((await retry).wallet?.userId).toBe('user-3');
+    wallet.flush({ id: 'wallet-recovery', ...wallet.request.body });
+    expect((await retry).user).toEqual(user);
+    expect(service.pendingRegistration()).toBeNull();
+  });
+
+  it('records recovery before the wallet request completes', async () => {
+    const registration = { name: 'Bia', email: 'bia@utfpr.edu.br', campus: 'Curitiba' };
+    const request = firstValueFrom(service.sendRegistrationOtp(registration));
+    http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([]);
+    http.expectOne('/api/auth/otp/send').flush({});
+    const challenge = await request;
+    const subscription = service.confirmOtp(challenge.code).subscribe();
+    const create = http.expectOne('/api/users');
+    const user = create.request.body;
+    create.flush(user);
+    expect(
+      JSON.parse(
+        localStorage.getItem('utfgo.auth.registration-recovery.bia%40utfpr.edu.br') ?? 'null',
+      ),
+    ).toEqual(user);
+    subscription.unsubscribe();
+    http.expectOne('/api/wallets');
+  });
+
+  it('recovers a user when the response to user creation is lost', async () => {
+    const registration = { name: 'Bia', email: 'bia@utfpr.edu.br', campus: 'Curitiba' };
+    const request = firstValueFrom(service.sendRegistrationOtp(registration));
+    http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([]);
+    http.expectOne('/api/auth/otp/send').flush({});
+    const challenge = await request;
+    const confirmation = firstValueFrom(service.confirmOtp(challenge.code));
+    const create = http.expectOne('/api/users');
+    const persisted = create.request.body;
+    expect(persisted.id).toBeTruthy();
+    create.error(new ProgressEvent('error'));
+    await expect(confirmation).rejects.toThrow();
+    const retry = firstValueFrom(service.confirmOtp(challenge.code));
+    http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([persisted]);
+    http.expectOne(`/api/wallets?userId=${persisted.id}`).flush([]);
+    const wallet = http.expectOne('/api/wallets');
+    wallet.flush({ id: 'wallet', ...wallet.request.body });
+    expect((await retry).user.id).toBe(persisted.id);
+  });
+
+  it('keeps recovery records for different registrations independent', async () => {
+    const first = { name: 'Bia', email: 'bia@utfpr.edu.br', campus: 'Curitiba' };
+    const second = { name: 'Ana', email: 'ana@utfpr.edu.br', campus: 'Pato Branco' };
+    const start = async (registration: RegistrationData) => {
+      const request = firstValueFrom(service.sendRegistrationOtp(registration));
+      http.expectOne(`/api/users?email=${encodeURIComponent(registration.email)}`).flush([]);
+      http.expectOne('/api/auth/otp/send').flush({});
+      const challenge = await request;
+      const confirmation = firstValueFrom(service.confirmOtp(challenge.code));
+      const create = http.expectOne('/api/users');
+      const user = create.request.body;
+      create.error(new ProgressEvent('error'));
+      await expect(confirmation).rejects.toThrow();
+      return user;
+    };
+    const firstUser = await start(first);
+    await start(second);
+    const restart = firstValueFrom(service.sendRegistrationOtp(first));
+    http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([firstUser]);
+    http.expectOne('/api/auth/otp/send').flush({});
+    await expect(restart).resolves.toBeDefined();
+  });
+
+  it('uses the same wallet id for simultaneous confirmations of one registration', async () => {
+    const registration = { name: 'Bia', email: 'bia@utfpr.edu.br', campus: 'Curitiba' };
+    const request = firstValueFrom(service.sendRegistrationOtp(registration));
+    http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([]);
+    http.expectOne('/api/auth/otp/send').flush({});
+    const challenge = await request;
+    const first = firstValueFrom(service.confirmOtp(challenge.code));
+    const create = http.expectOne('/api/users');
+    const user = create.request.body;
+    create.flush(user);
+    const firstWallet = http.expectOne('/api/wallets');
+    const second = firstValueFrom(service.confirmOtp(challenge.code));
+    http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([user]);
+    http.expectOne(`/api/wallets?userId=${user.id}`).flush([]);
+    const secondWallet = http.expectOne('/api/wallets');
+    expect(firstWallet.request.body.id).toBeTruthy();
+    expect(secondWallet.request.body.id).toBe(firstWallet.request.body.id);
+    secondWallet.error(new ProgressEvent('error'));
+    await expect(second).rejects.toThrow();
+    firstWallet.flush(firstWallet.request.body);
+    await first;
+  });
+
+  it.each(['SUSPENDED', 'BANNED'] as const)(
+    'does not authenticate a recovered %s account',
+    async (status) => {
+      const registration = { name: 'Bia', email: 'bia@utfpr.edu.br', campus: 'Curitiba' };
+      const request = firstValueFrom(service.sendRegistrationOtp(registration));
+      http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([]);
+      http.expectOne('/api/auth/otp/send').flush({});
+      const challenge = await request;
+      const confirmation = firstValueFrom(service.confirmOtp(challenge.code));
+      const create = http.expectOne('/api/users');
+      const user = create.request.body;
+      create.flush(user);
+      http.expectOne('/api/wallets').error(new ProgressEvent('error'));
+      await expect(confirmation).rejects.toThrow();
+      const retry = firstValueFrom(service.confirmOtp(challenge.code));
+      http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([{ ...user, status }]);
+      await expect(retry).rejects.toThrow(status === 'BANNED' ? 'banida' : 'suspensa');
+      expect(service.session()).toBeNull();
+    },
+  );
+
+  it('does not trust role or status in a recovered user', async () => {
+    const registration = { name: 'Bia', email: 'bia@utfpr.edu.br', campus: 'Curitiba' };
+    localStorage.setItem('utfgo.auth.registration-recovery.bia%40utfpr.edu.br', JSON.stringify({ ...registration, id: 'old', role: 'ADMIN', status: 'BANNED' }));
+    const request = firstValueFrom(service.sendRegistrationOtp(registration));
+    http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([]);
+    http.expectOne('/api/auth/otp/send').flush({});
+    const challenge = await request;
+    const confirmation = firstValueFrom(service.confirmOtp(challenge.code));
+    http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([]);
+    const create = http.expectOne('/api/users');
+    expect(create.request.body).toMatchObject({ role: 'PASSENGER', status: 'ACTIVE' });
+    create.flush(create.request.body);
+    const wallet = http.expectOne('/api/wallets');
+    wallet.flush(wallet.request.body);
+    await confirmation;
+  });
+
+  it('creates a missing wallet during login after browser data is cleared', async () => {
+    const login = firstValueFrom(service.sendLoginOtp(activeUser.email));
+    http.expectOne('/api/users?email=ana%40alunos.utfpr.edu.br').flush([activeUser]);
+    http.expectOne('/api/auth/otp/send').flush({});
+    const challenge = await login;
+    const confirmation = firstValueFrom(service.confirmOtp(challenge.code));
+    http.expectOne('/api/users?email=ana%40alunos.utfpr.edu.br').flush([activeUser]);
+    http.expectOne('/api/wallets?userId=user-1').flush([]);
+    const wallet = http.expectOne('/api/wallets');
+    wallet.flush(wallet.request.body);
+    expect((await confirmation).wallet?.userId).toBe(activeUser.id);
+  });
+
+  it('allows changed registration data when the previous user was not persisted', async () => {
+    const old = { id: 'old', name: 'Bia', email: 'bia@utfpr.edu.br', campus: 'Curitiba', role: 'ADMIN', status: 'BANNED' };
+    localStorage.setItem('utfgo.auth.registration-recovery.bia%40utfpr.edu.br', JSON.stringify(old));
+    const request = firstValueFrom(service.sendRegistrationOtp({ ...old, campus: 'Londrina' }));
+    http.expectOne('/api/users?email=bia%40utfpr.edu.br').flush([]);
+    http.expectOne('/api/auth/otp/send').flush({});
+    const challenge = await request;
+    const confirmation = firstValueFrom(service.confirmOtp(challenge.code));
+    const create = http.expectOne('/api/users');
+    expect(create.request.body).toMatchObject({ campus: 'Londrina', role: 'PASSENGER', status: 'ACTIVE' });
+    create.flush(create.request.body);
+    const wallet = http.expectOne('/api/wallets');
+    wallet.flush(wallet.request.body);
+    await confirmation;
   });
 
   it('rejects an incomplete OTP without authenticating or creating a session', async () => {
@@ -362,7 +566,17 @@ describe('AuthService — confirmação de OTP e sessão', () => {
   });
 
   it('restores a persisted session when the service is instantiated again', () => {
-    const session = { user: activeUser, token: 'token-restaurado', wallet: { id: 'wallet-1', userId: 'user-1', tokenBalance: 7, penaltyPoints: 0, updatedAt: '2026-10-02T00:00:00.000Z' } };
+    const session = {
+      user: activeUser,
+      token: 'token-restaurado',
+      wallet: {
+        id: 'wallet-1',
+        userId: 'user-1',
+        tokenBalance: 7,
+        penaltyPoints: 0,
+        updatedAt: '2026-10-02T00:00:00.000Z',
+      },
+    };
     localStorage.setItem('utfgo.auth.session', JSON.stringify(session));
 
     TestBed.resetTestingModule();
@@ -374,9 +588,14 @@ describe('AuthService — confirmação de OTP e sessão', () => {
   });
 
   it('rejects an old session without a wallet instead of displaying a fabricated balance', () => {
-    localStorage.setItem('utfgo.auth.session', JSON.stringify({ user: activeUser, token: 'old-token' }));
+    localStorage.setItem(
+      'utfgo.auth.session',
+      JSON.stringify({ user: activeUser, token: 'old-token' }),
+    );
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: [AuthService, provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({
+      providers: [AuthService, provideHttpClient(), provideHttpClientTesting()],
+    });
     expect(TestBed.inject(AuthService).session()).toBeNull();
   });
 
@@ -414,7 +633,15 @@ describe('AuthService — confirmação de OTP e sessão', () => {
     const challenge = await loginRequest;
     const confirmation = firstValueFrom(service.confirmOtp(challenge.code));
     http.expectOne('/api/users?email=ana%40alunos.utfpr.edu.br').flush([activeUser]);
-    http.expectOne('/api/wallets?userId=user-1').flush([{ id: 'wallet-1', userId: 'user-1', tokenBalance: 0, penaltyPoints: 0, updatedAt: '2026-10-02T00:00:00.000Z' }]);
+    http.expectOne('/api/wallets?userId=user-1').flush([
+      {
+        id: 'wallet-1',
+        userId: 'user-1',
+        tokenBalance: 0,
+        penaltyPoints: 0,
+        updatedAt: '2026-10-02T00:00:00.000Z',
+      },
+    ]);
     await confirmation;
 
     service.logout();
