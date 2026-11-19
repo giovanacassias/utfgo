@@ -43,6 +43,14 @@ describe('Login page', () => {
     expect(submit?.textContent?.trim()).toBe('Enviar código de acesso');
   });
 
+  it('provides an accessible back control and explains that login uses a one-time PIN', () => {
+    const page = harness.routeNativeElement;
+    const back = page?.querySelector('a[aria-label="Voltar"]');
+
+    expect(back?.getAttribute('href')).toBe('/');
+    expect(page?.querySelector('form')?.textContent).toMatch(/código PIN de uso único/i);
+  });
+
   it('limits the login form container to the theme small breakpoint', () => {
     const formContainer = harness.routeNativeElement?.querySelector('form')?.parentElement;
 

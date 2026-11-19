@@ -141,7 +141,7 @@
 
 | Termo PRD (PT-BR) | Entidade Técnica (EN) | Atributos Principais |
 | :---------------- | :-------------------- | :------------------- |
-| **Usuário** | `User` | `id`, `email`, `name`, `role` (`PASSENGER`, `DRIVER`, `ADMIN`), `status` (`ACTIVE`, `SUSPENDED`, `BANNED`), `createdAt` |
+| **Usuário** | `User` | `id`, `email`, `name`, `campus`, `role` (`PASSENGER`, `DRIVER`, `ADMIN`), `status` (`ACTIVE`, `SUSPENDED`, `BANNED`), `createdAt` |
 | **Perfil de Condutor** | `DriverProfile` | `id`, `userId`, `cnhNumber`, `crlvNumber`, `status` (`PENDING`, `APPROVED`, `REJECTED`), `approvedAt` |
 | **Carteira Digital** | `Wallet` | `id`, `userId`, `tokenBalance`, `penaltyPoints`, `updatedAt` |
 | **Pedido de Fichas** | `Order` | `id`, `userId`, `tokensCount`, `amountCents`, `status` (`PENDING`, `COMPLETED`, `CANCELLED`), `createdAt` |
@@ -174,6 +174,7 @@ erDiagram
         string id PK
         string email UK
         string name
+        string campus
         string role
         string status
         datetime createdAt

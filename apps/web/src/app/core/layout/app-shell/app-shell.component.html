@@ -26,7 +26,18 @@
       <div class="mt-auto flex flex-col gap-4">
         <div class="border-t border-border pt-4 text-small text-text-secondary">
           <p class="font-semibold text-text-primary">Perfil ativo</p>
-          <p>Passageiro</p>
+          <div class="mt-2 flex flex-wrap items-center gap-2">
+            <span class="rounded-control bg-tertiary px-2 py-1 font-semibold text-on-tertiary">
+              Passageiro
+            </span>
+            <button
+              type="button"
+              disabled
+              class="rounded-control bg-control-disabled px-2 py-1 text-text-secondary"
+            >
+              Condutor
+            </button>
+          </div>
         </div>
         <button
           data-app-shell-logout

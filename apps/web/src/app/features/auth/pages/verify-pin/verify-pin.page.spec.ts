@@ -62,6 +62,15 @@ describe('Verify PIN page', () => {
     await Promise.resolve();
     await harness.fixture.whenStable();
   }
+  it('displays all six digits from the single one-time-code input', async () => {
+    input('012345');
+    await harness.fixture.whenStable();
+
+    const field = harness.routeNativeElement?.querySelector('input[autocomplete="one-time-code"]');
+    const cells = Array.from(field?.nextElementSibling?.children ?? []);
+    expect(cells.map((cell) => cell.textContent.trim())).toEqual(['0', '1', '2', '3', '4', '5']);
+  });
+
   it('shows the email and rejects an incomplete code', async () => {
     expect(harness.routeNativeElement?.textContent).toContain(session.user.email);
     input('123');

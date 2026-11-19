@@ -77,4 +77,16 @@
 
 ## 4. Critérios sem tarefa
 
-*(Nenhum — todos os critérios `CA1` a `CA16` estão cobertos pelas 8 tarefas acima.)*
+*(Nenhum — todos os critérios `CA1` a `CA16` estão cobertos pelas tarefas acima.)*
+
+
+## Estado da entrega após a auditoria
+
+- O cadastro coleta e persiste `campus` no registro de usuário.
+- A casca exibe Passageiro como perfil ativo e Condutor como opção desabilitada.
+- Login e cadastro consultam o mesmo token de configuração de domínios institucionais.
+- Os cinco SVGs da landing ficam em `apps/web/public/landing/`.
+- Limitação conhecida: se outra tentativa cadastrar o e-mail entre o envio e a
+  confirmação do PIN, o conflito ainda é apresentado como falha de conexão.
+  O ajuste para esse cenário foi [recusado na triagem](reviews/alteracoes-locais-decisoes-r2.md)
+  e continua fora desta entrega.

@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { vi } from 'vitest';
 
 import { AuthService } from './auth.service';
+import { INSTITUTIONAL_EMAIL_DOMAINS } from './institutional-email.config';
 import { RegistrationData, User } from '../models/auth.model';
 
 describe('AuthService — envio de OTP', () => {
@@ -648,5 +649,21 @@ describe('AuthService — confirmação de OTP e sessão', () => {
 
     expect(service.session()).toBeNull();
     expect(localStorage.getItem('utfgo.auth.session')).toBeNull();
+  });
+});
+
+describe('AuthService — configuração institucional', () => {
+  it('uses the configured domains instead of the defaults', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        { provide: INSTITUTIONAL_EMAIL_DOMAINS, useValue: ['Campus.Example'] },
+      ],
+    });
+
+    const service = TestBed.inject(AuthService);
+    expect(service.isInstitutionalEmail(' Ana@campus.example ')).toBe(true);
+    expect(service.isInstitutionalEmail('ana@utfpr.edu.br')).toBe(false);
+    expect(service.isInstitutionalEmail('ana@sub.campus.example')).toBe(false);
   });
 });

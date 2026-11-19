@@ -105,6 +105,11 @@ describe('AppShellComponent', () => {
     const sidebar = shell.querySelector('[data-app-shell-sidebar]') as HTMLElement;
     const links = Array.from(shell.querySelectorAll('[data-app-shell-sidebar] nav a'));
 
+    const driverOption = Array.from(sidebar.querySelectorAll('button')).find(
+      (button) => button.textContent.trim() === 'Condutor',
+    );
+    expect(driverOption?.disabled).toBe(true);
+
     expect(sidebar.classList.contains('lg:fixed')).toBe(true);
     expect(sidebar.classList.contains('lg:w-62')).toBe(true);
     expect(appShell.classList.contains('lg:pl-62')).toBe(true);

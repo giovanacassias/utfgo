@@ -11,6 +11,8 @@ import {
   Wallet,
 } from '../models/auth.model';
 
+import { INSTITUTIONAL_EMAIL_DOMAINS } from './institutional-email.config';
+
 const API_URL = '/api';
 const OTP_VALIDITY_MS = 10 * 60 * 1000;
 const SESSION_STORAGE_KEY = 'utfgo.auth.session';
@@ -21,6 +23,9 @@ const NETWORK_ERROR = 'Não foi possível enviar o código. Verifique sua conex�
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly institutionalDomains = new Set(
+    inject(INSTITUTIONAL_EMAIL_DOMAINS).map((domain) => domain.trim().toLowerCase()),
+  );
   private readonly currentChallenge = signal<OtpChallenge | null>(null);
   private readonly sessionState = signal<AuthSession | null>(this.restoreSession());
 
@@ -137,8 +142,8 @@ export class AuthService {
   }
 
   isInstitutionalEmail(email: string): boolean {
-    const normalizedEmail = email.trim().toLowerCase();
-    return /^[^\s@]+@(?:alunos\.utfpr\.edu\.br|utfpr\.edu\.br)$/.test(normalizedEmail);
+    const domain = /^[^\s@]+@([^\s@]+)$/.exec(email.trim().toLowerCase())?.[1];
+    return domain !== undefined && this.institutionalDomains.has(domain);
   }
 
   sendLoginOtp(email: string): Observable<OtpChallenge> {
