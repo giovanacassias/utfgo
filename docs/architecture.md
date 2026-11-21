@@ -96,7 +96,7 @@
 ├── specs/                   # Especificações, planos e revisões por história
 └── apps/
     ├── api/                 # Mock json-server do MVP; backend real fica para evolução futura
-    │   ├── db.json          # Seed local de usuários da US01
+    │   ├── db.json          # Seed local do mock (usuários e carteiras da US01; pedidos e pagamentos da US02)
     │   ├── server.cjs       # Rota de OTP simulado + router json-server
     │   └── README.md
     └── web/                 # Frontend Angular 22 Standalone

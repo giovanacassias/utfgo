@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { appConfig, WALLET_API_URL } from '../../../app.config';
 import { environment } from '../../../../environments/environment';
-import seedDb from '../../../../../../../db.json';
+import seedDb from '../../../../../../api/db.json';
 import {
   formatBrlFromCents,
   MAX_TOKENS_PER_ORDER,
