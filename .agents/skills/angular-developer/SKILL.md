@@ -73,6 +73,8 @@ When communicating with backend services, use Angular HTTP APIs and consult the 
 
 ## Forms
 
+When a repository has explicit frontend rules, those rules take precedence over these generic recommendations. In UTFgo, files under `apps/web/src/` must use Reactive Forms (`FormGroup`, `FormControl`, `Validators`) as required by `.agents/rules/01-angular-strict-rules.md`; do not introduce Signal Forms in this project.
+
 In most cases for new apps, **prefer signal forms**. When making a forms decision, analyze the project and consider the following guidelines:
 
 - If the application is using v22 or newer and this is a new form, **prefer Signal Forms**.
