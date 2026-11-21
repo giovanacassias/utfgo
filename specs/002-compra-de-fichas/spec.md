@@ -81,6 +81,21 @@ Como a **Issue #1** (login real e `AppShellComponent`) está em paralelo e o **b
 - [ ] **CA4 — Quantidade personalizada válida:** Dado a tela `/cofrinho/comprar`, quando o usuário preenche no campo **Quantidade personalizada** um número inteiro entre `1` e `100` (ex.: `8`), então o resumo recalcula o total (`R$ 16,00`), limpa a seleção anterior de pacote fixo e permite avançar para `/cofrinho/pagamento`.
 - [ ] **CA5 — Quantidade inválida bloqueada (Caminho Triste):** Dado a tela `/cofrinho/comprar`, quando nenhuma quantidade válida está selecionada ou o campo personalizado recebe valor vazio, `0`, negativo, decimal (ex.: `1.5`), texto não numérico ou superior a `100`, então uma mensagem de erro clara é exibida junto ao campo e o botão **"Ir para pagamento"** permanece bloqueado/impede o avanço.
 
+**Regras de validação e mensagens de `/cofrinho/comprar` (detalham o CA5 e o CA13):** o campo *Quantidade personalizada* é um campo de texto (`type="text"`, `inputmode="numeric"`) com Reactive Forms. A mensagem aparece junto ao campo (`role="alert"`) depois que o usuário digita ou sai do campo; ao abrir a tela, sem nenhuma escolha, aparece apenas a dica neutra, sem estilo de erro. O botão **"Ir para pagamento"** fica bloqueado enquanto houver erro, e a função de avançar também recusa a entrada inválida (não depende só do `disabled`).
+
+| Caso | Exemplo | Regra | Mensagem |
+| --- | --- | --- | --- |
+| Nada escolhido / campo vazio | (vazio) | obrigatório | "Escolha um pacote ou informe uma quantidade." |
+| Zero | `0` | mínimo 1 | "A quantidade mínima é 1 ficha." |
+| Negativo | `-3` | mínimo 1 | "A quantidade mínima é 1 ficha." |
+| Decimal | `1.5` | somente inteiros | "Informe um número inteiro, sem vírgula ou ponto." |
+| Texto não numérico | `abc` | somente dígitos | "Digite apenas números." |
+| Acima do limite | `101` | máximo 100 | "A quantidade máxima por pedido é 100 fichas." |
+| Conta suspensa | usuário `SUSPENDED` | conta bloqueada (não é regra do campo) | "Sua conta está suspensa e não pode realizar compras de fichas." |
+| Conta banida | usuário `BANNED` | conta bloqueada (não é regra do campo) | "Sua conta está banida e não pode realizar compras de fichas." |
+
+Decisões de escopo da tela (Figma × spec): pacote selecionado destacado em `tertiary` (sem a etiqueta amarela "SELECIONADO" do Figma); os botões − e + do Figma mobile não entram nesta tarefa; ao voltar de `/cofrinho/pagamento` o rascunho anterior não é pré-selecionado.
+
 ### Pagamento via Pix e Cartão (`/cofrinho/pagamento`, `/cofrinho/pix`, `/cofrinho/cartao`)
 - [ ] **CA6 — Criação de `Order` e `Payment` via Pix sem crédito prematuro:** Dado uma quantidade válida (`1` a `100`), quando o usuário seleciona **Pix** em `/cofrinho/pagamento` e confirma, então o sistema persiste no `json-server` um `Order` (`status: 'PENDING'`, `tokensCount`, `amountCents: tokensCount * 200`) e um `Payment` (`method: 'PIX'`, `status: 'PENDING'`, `gatewayPaymentId` único), navega para `/cofrinho/pix` exibindo o QR Code simulado, o código Copia e Cola com ação de copiar e a etiqueta `AGUARDANDO PAGAMENTO`, mantendo `Wallet.tokenBalance` **inalterado** até a confirmação.
 - [ ] **CA7 — Confirmação assíncrona simulada (Webhook Pix) e crédito na carteira:** Dado um pedido Pix com `Order.status = 'PENDING'` e `Payment.status = 'PENDING'`, quando o usuário aciona a confirmação simulada (**"Já realizei o pagamento"**), então o sistema atualiza `Payment.status` para `PAID` (com `paidAt`), atualiza `Order.status` para `COMPLETED`, incrementa `Wallet.tokenBalance` em `order.tokensCount` no `json-server` e redireciona para `/cofrinho/aprovado` exibindo o resumo da compra e o novo saldo.
