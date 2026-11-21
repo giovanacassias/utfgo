@@ -72,6 +72,7 @@ A escala abaixo padroniza os espaçamentos para a implementação. Ela usa uma b
 | `--space-8` | 32 px |
 | `--space-10` | 40 px |
 | `--space-12` | 48 px |
+| `--spacing-62` | 248 px |
 
 Amostras atuais incluem ainda 10, 14 e 22 px, em especial por causa da montagem manual. Trate esses casos como ajustes locais existentes, não como novos degraus da escala.
 

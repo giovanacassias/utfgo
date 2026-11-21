@@ -57,3 +57,11 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+## Domínios institucionais
+
+O cadastro e o login usam a mesma lista de domínios. Para alterar os valores
+padrão, ajuste o token `INSTITUTIONAL_EMAIL_DOMAINS` em
+[src/app/core/auth/institutional-email.config.ts](src/app/core/auth/institutional-email.config.ts)
+e gere um novo build. Informe os domínios sem `@`. A comparação é exata e
+ignora diferenças de maiúsculas e minúsculas. Subdomínios exigem entradas próprias.
