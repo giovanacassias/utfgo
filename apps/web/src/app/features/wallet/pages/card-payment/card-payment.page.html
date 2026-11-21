@@ -1,0 +1,188 @@
+@if (ready()) {
+  <section class="mx-auto flex max-w-6xl flex-col gap-6 lg:gap-8">
+    <a
+      data-back
+      routerLink="/cofrinho/pagamento"
+      aria-label="Voltar"
+      class="inline-flex min-h-11 min-w-11 w-fit items-center justify-center text-title font-bold text-text-primary focus-visible:outline-2 focus-visible:outline-tertiary lg:hidden"
+    >
+      &larr;
+    </a>
+
+    <header class="flex flex-col gap-1">
+      <p class="hidden text-caption font-semibold uppercase text-tertiary lg:block">Pagamento</p>
+      <h1 class="text-title font-extrabold text-text-primary lg:text-display">
+        Pague com cartão de crédito
+      </h1>
+      <p class="text-small text-text-secondary lg:text-body">
+        Preencha os dados do cartão para concluir a compra.
+      </p>
+    </header>
+
+    @if (navigationFailed()) {
+      <div
+        data-navigation-error
+        role="alert"
+        class="flex flex-col gap-3 rounded-control bg-danger-surface p-4 text-small font-semibold text-danger sm:flex-row sm:items-center sm:justify-between"
+      >
+        <span>Não foi possível abrir a próxima tela. Volte ao Cofrinho para ver o seu pedido.</span>
+        <a
+          data-back-to-wallet
+          routerLink="/cofrinho"
+          class="inline-flex min-h-11 items-center justify-center rounded-control border border-danger px-4 text-small font-semibold text-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary"
+        >
+          Voltar ao Cofrinho
+        </a>
+      </div>
+    } @else if (isAccountBlocked()) {
+      <p
+        data-account-blocked
+        role="alert"
+        class="rounded-control bg-danger-surface p-4 text-small font-semibold text-danger"
+      >
+        {{ accountBlockMessage() }}
+      </p>
+    } @else if (error(); as message) {
+      <div
+        data-error
+        role="alert"
+        class="flex flex-col gap-3 rounded-control bg-danger-surface p-4 text-small font-semibold text-danger sm:flex-row sm:items-center sm:justify-between"
+      >
+        <span>{{ message }}</span>
+        <button
+          type="button"
+          data-retry
+          [disabled]="busy()"
+          class="min-h-11 rounded-control border border-danger px-4 text-small font-semibold text-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:text-text-secondary"
+          (click)="retry()"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    }
+
+    <form
+      [formGroup]="form"
+      (ngSubmit)="pay()"
+      novalidate
+      class="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-8"
+    >
+      <div
+        class="flex flex-col gap-4 rounded-card bg-background p-4 lg:col-start-2 lg:row-start-1 lg:items-stretch lg:border lg:border-border lg:p-8"
+      >
+        <div class="flex items-center gap-4">
+          <span
+            class="flex size-12 shrink-0 items-center justify-center rounded-control bg-surface-muted"
+          >
+            <img src="icons/card.svg" alt="" aria-hidden="true" class="h-4 w-5" />
+          </span>
+          <div class="flex flex-col">
+            <span class="whitespace-nowrap text-caption font-semibold uppercase text-text-secondary">
+              Resumo do pedido
+            </span>
+            <span data-summary-quantity class="text-body font-bold text-text-primary">
+              {{ tokensLabel() }}
+            </span>
+          </div>
+        </div>
+        <dl class="flex flex-col gap-3 border-t border-border pt-4 lg:border-t-0 lg:pt-0">
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-caption text-text-secondary">Valor por ficha</dt>
+            <dd data-summary-unit class="text-small font-semibold text-text-primary">
+              {{ unitPriceLabel }}
+            </dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-caption text-text-secondary">Total a pagar</dt>
+            <dd data-summary-total class="text-body font-bold text-tertiary lg:text-title-small">
+              {{ totalLabel() }}
+            </dd>
+          </div>
+          <div class="flex items-start justify-between gap-4">
+            <dt class="text-caption text-text-secondary">Forma</dt>
+            <dd class="text-right text-small text-text-primary">Cartão de crédito à vista (1x)</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div
+        class="flex flex-col gap-4 rounded-card bg-background p-4 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:border lg:border-border lg:p-8"
+      >
+        <h2 class="hidden text-title-small font-bold text-text-primary lg:block">
+          Dados do cartão
+        </h2>
+
+        <div class="grid grid-cols-2 gap-4">
+          @for (field of fields; track field.name) {
+            <div class="flex flex-col gap-2" [class.col-span-2]="field.wide">
+              <label [for]="field.id" class="text-small font-semibold text-text-secondary">
+                {{ field.label }}
+              </label>
+              <input
+                [id]="field.id"
+                type="text"
+                [attr.inputmode]="field.inputmode"
+                [attr.autocomplete]="field.autocomplete"
+                [formControlName]="field.name"
+                [placeholder]="field.placeholder"
+                [attr.aria-invalid]="errors()[field.name] ? 'true' : null"
+                [attr.aria-describedby]="errors()[field.name] ? field.id + '-error' : null"
+                class="min-h-12 w-full rounded-control border bg-background px-4 text-body text-text-primary focus-visible:outline-2 focus-visible:outline-tertiary"
+                [class]="errors()[field.name] ? 'border-danger' : 'border-border'"
+              />
+              @if (errors()[field.name]; as message) {
+                <p
+                  [id]="field.id + '-error'"
+                  [attr.data-field-error]="field.name"
+                  role="alert"
+                  class="rounded-control bg-danger-surface p-3 text-small font-semibold text-danger"
+                >
+                  {{ message }}
+                </p>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div
+        class="flex flex-col gap-4 lg:col-start-2 lg:row-start-2 lg:rounded-card lg:border lg:border-border lg:bg-background lg:p-8"
+      >
+        <button
+          type="submit"
+          data-pay
+          [disabled]="!canPay()"
+          class="min-h-12 w-full rounded-control bg-primary px-4 text-small font-semibold text-on-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:bg-control-disabled disabled:text-text-secondary"
+        >
+          {{ payLabel() }}
+        </button>
+
+        <button
+          type="button"
+          data-cancel
+          [disabled]="!canCancel()"
+          class="min-h-11 w-full rounded-control border border-danger px-4 text-small font-semibold text-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:border-border disabled:text-text-secondary"
+          (click)="cancel()"
+        >
+          Cancelar pedido
+        </button>
+
+        <div
+          data-sandbox
+          class="flex flex-col gap-2 rounded-control border border-dashed border-border bg-surface-muted p-4"
+        >
+          <p class="text-caption font-semibold text-text-secondary">Ambiente de teste (sandbox)</p>
+          <button
+            type="button"
+            data-refuse
+            [disabled]="!canRefuse()"
+            class="min-h-11 w-full rounded-control border border-border bg-background px-4 text-small font-semibold text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:text-text-secondary"
+            (click)="simulateRefusal()"
+          >
+            Simular cartão recusado
+          </button>
+        </div>
+      </div>
+    </form>
+  </section>
+}

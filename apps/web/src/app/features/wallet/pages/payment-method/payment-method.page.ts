@@ -94,7 +94,7 @@ export class PaymentMethodPage implements OnInit {
     }
 
     if (this.method() === 'CREDIT_CARD') {
-      // TODO #2: /cofrinho/cartao is created in task 8 and creates the Payment there.
+      // TODO #2: /cofrinho/cartao (task 8 page) creates the card Payment when it opens.
       void this.router.navigate(['/cofrinho/cartao']);
       return;
     }
