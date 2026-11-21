@@ -128,6 +128,29 @@ Decisões de escopo da tela (Figma × spec): pacote selecionado destacado em `te
 - **Trava e erros:** as três ações compartilham a trava (`loading` do service e `submitting` da página); erro de rede ou parcial usa a mensagem do `WalletService` em `role="alert"` com "Tentar novamente", que repete a ação que falhou.
 - **Sem pedido ou pagamento ativo, ou fora de `PENDING`:** a página redireciona para `/cofrinho` (não chama `loadWalletData`).
 - **Ícones:** copiar e sincronizar exportados do Figma para `apps/web/public/icons/`.
+
+**Decisões da tela `/cofrinho/cartao` (detalham CA8, CA9, CA11, CA12, CA14 e CA15):**
+- **Formulário (Reactive Forms, só em memória):** quatro campos com `<label for>`, `type="text"` e os atributos `autocomplete` `cc-name`, `cc-number`, `cc-exp`, `cc-csc` (`inputmode="numeric"` em número, validade e CVV; o titular em texto). **Sem máscara**: o número aceita espaços e hífens, que são removidos antes de validar; sem algoritmo de Luhn (a spec pede só 16 dígitos). A validade exige `MM/AA`, mês de 01 a 12 e vale até o **último dia do mês** (o mês atual ainda é válido); `AA` vira `2000 + AA`.
+- **Quando mostrar o erro:** só depois que a pessoa digita ou sai do campo; ao abrir, os campos aparecem limpos. O botão **"Pagar"** fica bloqueado enquanto houver erro; a função de pagar também recusa dados inválidos (marcando todos os campos como tocados e revalidando), mesmo com o `disabled` burlado ou com Enter.
+
+| Campo | Caso | Exemplo | Mensagem |
+| --- | --- | --- | --- |
+| Titular | vazio ou só espaços | (vazio) | "Informe o nome do titular, como está no cartão." |
+| Número | vazio | (vazio) | "Informe o número do cartão." |
+| Número | letra ou símbolo (depois de tirar espaços e hífens) | `4111a11111111111` | "Digite apenas números." |
+| Número | menos ou mais de 16 dígitos | `4111 1111` | "O número do cartão deve ter 16 dígitos." |
+| Validade | vazia | (vazio) | "Informe a validade do cartão." |
+| Validade | formato fora de `MM/AA` | `1126`, `1/26`, `11-26` | "Use o formato MM/AA, por exemplo 08/29." |
+| Validade | mês fora de 01 a 12 | `13/29`, `00/29` | "Mês inválido. Use de 01 a 12." |
+| Validade | vencida | `10/26` (hoje 21/11/2026) | "Este cartão está vencido." |
+| CVV | vazio | (vazio) | "Informe o código de segurança (CVV)." |
+| CVV | não numérico | `12a` | "Digite apenas números." |
+| CVV | diferente de 3 ou 4 dígitos | `12`, `12345` | "O CVV deve ter 3 ou 4 dígitos." |
+
+- **Privacidade (RNF06):** número, validade, CVV e titular vivem só no formulário; nunca vão ao `WalletService`, à URL, ao `console`, ao `localStorage` nem ao `sessionStorage`. O formulário é limpo só no sucesso (antes de navegar) e **preservado em qualquer erro**.
+- **Criação do pedido ao abrir a tela (Cenário 4):** com rascunho e sem pedido ativo, `createOrderAndPayment(tokensCount, 'CREDIT_CARD')`; com pedido ativo `PENDING` (retentativa), `createPaymentForOrder(orderId, 'CREDIT_CARD')`, **reaproveitando o pagamento ativo quando já for `CREDIT_CARD` e `PENDING`**. Se a criação falhar, a tela mostra a mensagem do service com "Tentar novamente"; sem pagamento, "Pagar" e "Simular cartão recusado" ficam bloqueados. Sem rascunho e sem pedido ativo, a página redireciona para `/cofrinho/comprar` (decidido uma vez, no `ngOnInit`).
+- **Ações:** "Pagar R$ X,XX" ("Processando pagamento..." durante o envio) chama `confirmPayment(payment.id)` e só navega para `/cofrinho/aprovado` com retorno `true`; "Simular cartão recusado" (dentro da caixa "Ambiente de teste (sandbox)") chama `failPayment` e vai a `/cofrinho/falha`; "Cancelar pedido" (sem confirmação) chama `cancelOrder` e volta a `/cofrinho`. **Recusar e cancelar não exigem formulário válido.** Trava compartilhada (`loading`, `submitting` e falha de navegação), "Tentar novamente" repete a ação que falhou e o resultado de `router.navigate` é aguardado e tratado como na tela Pix.
+- **Visual:** tela **sem referência no Figma**, criada do zero (regra 02 §5) a partir das telas de pagamento e Pix: seta de voltar para `/cofrinho/pagamento`, resumo do pedido, cartão de campos (Validade e CVV lado a lado), botão primário amarelo, "Cancelar pedido" discreto com borda `danger` e caixa sandbox cinza tracejada; no desktop (`lg`) duas colunas. Ícone `icons/card.svg` (exportado do Figma), decorativo.
 - [ ] **CA15 — Consistência em falha parcial de múltiplas requisições (`RNF08`):** Dado que a simulação no `json-server` atualiza `Payment`, `Order` e `Wallet` em chamadas sequenciais, quando a gravação de `Payment` como `PAID` ocorre mas a atualização de `Order` ou `Wallet.tokenBalance` falha por erro de rede/HTTP, então o Service executa compensação/rollback do estado alterado (revertendo para `PENDING`/`FAILED` ou evitando reportar compra concluída) e apresenta erro recuperável ao usuário.
 
 ---
