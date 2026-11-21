@@ -133,6 +133,83 @@ describe('AppShellComponent', () => {
     expect(shell.querySelector('[data-shell-test-page]')).not.toBeNull();
   });
 
+  describe('sidebar visual', () => {
+    let sidebar: HTMLElement;
+
+    beforeEach(async () => {
+      await harness.navigateByUrl('/inicio', AppShellComponent);
+      sidebar = (harness.fixture.nativeElement as HTMLElement).querySelector(
+        '[data-app-shell-sidebar]',
+      ) as HTMLElement;
+    });
+
+    it('shows light text on the purple background of the active link without a competing gray text class', () => {
+      const active = sidebar.querySelector('nav a[href="/inicio"]') as HTMLElement;
+      const inactive = sidebar.querySelector('nav a[href="/caronas"]') as HTMLElement;
+
+      expect(active.classList.contains('bg-tertiary')).toBe(true);
+      expect(active.classList.contains('text-on-tertiary')).toBe(true);
+      expect(active.classList.contains('text-text-secondary')).toBe(false);
+      expect(inactive.classList.contains('text-text-secondary')).toBe(false);
+      expect(sidebar.querySelector('nav')?.classList.contains('text-text-secondary')).toBe(true);
+    });
+
+    it('applies the purple hover state with light text to every link', () => {
+      const links = Array.from(sidebar.querySelectorAll('nav a'));
+
+      expect(links.length).toBe(6);
+      for (const link of links) {
+        expect(link.classList.contains('hover:bg-tertiary')).toBe(true);
+        expect(link.classList.contains('hover:text-on-tertiary')).toBe(true);
+        expect(link.classList.contains('min-h-11')).toBe(true);
+      }
+    });
+
+    it('keeps a visible keyboard focus ring offset from the purple background on every link', () => {
+      const links = Array.from(sidebar.querySelectorAll('nav a'));
+
+      expect(links.length).toBe(6);
+      for (const link of links) {
+        expect(link.classList.contains('focus-visible:outline-2')).toBe(true);
+        expect(link.classList.contains('focus-visible:outline-tertiary')).toBe(true);
+        expect(link.classList.contains('focus-visible:outline-offset-2')).toBe(true);
+      }
+    });
+
+    it('renders a decorative dot in every menu item', () => {
+      const links = Array.from(sidebar.querySelectorAll('nav a'));
+
+      for (const link of links) {
+        const dot = link.querySelector('span[aria-hidden="true"]');
+        expect(dot).not.toBeNull();
+        expect(dot?.classList.contains('rounded-full')).toBe(true);
+        expect(dot?.textContent?.trim()).toBe('');
+      }
+    });
+
+    it('renders the small logo as a link to /inicio with the tagline', () => {
+      const logo = sidebar.querySelector('a[href="/inicio"]:not(nav a)') as HTMLElement;
+
+      expect(logo).not.toBeNull();
+      expect(logo.textContent).toContain('UTFgo');
+      expect(logo.textContent).toContain('MOBILIDADE UTFPR');
+      expect(logo.querySelector('.bg-primary.rounded-control')).not.toBeNull();
+      expect(logo.classList.contains('text-brand')).toBe(false);
+    });
+
+    it('keeps Condutor disabled inside the segmented profile control', () => {
+      const track = sidebar.querySelector('[data-app-shell-profile-switch]') as HTMLElement;
+      const buttons = Array.from(track.querySelectorAll('button'));
+      const driver = buttons.find((button) => button.textContent.trim() === 'Condutor');
+      const passenger = track.querySelector('.bg-background');
+
+      expect(track.classList.contains('bg-surface-muted')).toBe(true);
+      expect(driver?.disabled).toBe(true);
+      expect(passenger?.textContent?.trim()).toBe('Passageiro');
+      expect(sidebar.textContent).toContain('Perfil ativo');
+    });
+  });
+
   it('displays the persisted wallet balance in the header', async () => {
     session.update(
       (current) =>

@@ -2,22 +2,30 @@
   <ng-template #menuContent>
     <div class="flex flex-1 flex-col gap-8 p-6">
       <a
-        class="text-brand font-extrabold text-secondary"
+        class="flex items-center gap-3 rounded-control focus-visible:outline-2 focus-visible:outline-tertiary"
         routerLink="/inicio"
         (click)="closeDrawer()"
       >
-        UTFgo
+        <span aria-hidden="true" class="size-10 shrink-0 rounded-control bg-primary"></span>
+        <span class="flex flex-col">
+          <span class="text-title-small font-extrabold text-secondary">UTFgo</span>
+          <span class="text-caption font-semibold text-tertiary">MOBILIDADE UTFPR</span>
+        </span>
       </a>
 
-      <nav aria-label="Navegação principal" class="flex flex-col gap-2">
-        <span class="text-caption font-semibold uppercase text-text-secondary">Navegação</span>
+      <nav aria-label="Navegação principal" class="flex flex-col gap-2 text-text-secondary">
+        <span class="text-caption font-semibold uppercase">Navegação</span>
         @for (item of navigationItems; track item.path) {
           <a
-            class="rounded-control px-4 py-3 text-small font-semibold text-text-secondary"
+            class="group flex min-h-11 items-center gap-3 rounded-control px-4 py-3 text-small font-semibold hover:bg-tertiary hover:text-on-tertiary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary"
             [routerLink]="item.path"
             routerLinkActive="bg-tertiary text-on-tertiary"
             (click)="closeDrawer()"
           >
+            <span
+              aria-hidden="true"
+              class="size-2 shrink-0 rounded-full bg-border group-hover:bg-primary group-[.bg-tertiary]:bg-primary"
+            ></span>
             {{ item.label }}
           </a>
         }
@@ -26,14 +34,19 @@
       <div class="mt-auto flex flex-col gap-4">
         <div class="border-t border-border pt-4 text-small text-text-secondary">
           <p class="font-semibold text-text-primary">Perfil ativo</p>
-          <div class="mt-2 flex flex-wrap items-center gap-2">
-            <span class="rounded-control bg-tertiary px-2 py-1 font-semibold text-on-tertiary">
+          <div
+            data-app-shell-profile-switch
+            class="mt-2 grid grid-cols-2 gap-1 rounded-control bg-surface-muted p-1"
+          >
+            <span
+              class="rounded-control bg-background px-2 py-1 text-center font-bold text-text-primary"
+            >
               Passageiro
             </span>
             <button
               type="button"
               disabled
-              class="rounded-control bg-control-disabled px-2 py-1 text-text-secondary"
+              class="rounded-control px-2 py-1 text-center text-text-secondary"
             >
               Condutor
             </button>
