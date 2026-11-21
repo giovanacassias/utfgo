@@ -1,0 +1,197 @@
+@if (ready()) {
+  <section class="mx-auto flex max-w-6xl flex-col gap-6 lg:gap-8">
+    <a
+      data-back
+      routerLink="/cofrinho/pagamento"
+      aria-label="Voltar"
+      class="inline-flex min-h-11 min-w-11 w-fit items-center justify-center text-title font-bold text-text-primary focus-visible:outline-2 focus-visible:outline-tertiary lg:hidden"
+    >
+      &larr;
+    </a>
+
+    <header class="flex flex-col gap-1">
+      <p class="hidden text-caption font-semibold uppercase text-tertiary lg:block">Pagamento</p>
+      <h1 class="text-title font-extrabold text-text-primary lg:text-display">
+        Tudo pronto! Agora é só realizar o pagamento
+      </h1>
+      <p class="hidden text-body text-text-secondary lg:block">
+        Escaneie o QR Code ou copie o código Pix.
+      </p>
+    </header>
+
+    @if (navigationFailed()) {
+      <div
+        data-navigation-error
+        role="alert"
+        class="flex flex-col gap-3 rounded-control bg-danger-surface p-4 text-small font-semibold text-danger sm:flex-row sm:items-center sm:justify-between"
+      >
+        <span>Não foi possível abrir a próxima tela. Volte ao Cofrinho para ver o seu pedido.</span>
+        <a
+          data-back-to-wallet
+          routerLink="/cofrinho"
+          class="inline-flex min-h-11 items-center justify-center rounded-control border border-danger px-4 text-small font-semibold text-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary"
+        >
+          Voltar ao Cofrinho
+        </a>
+      </div>
+    } @else if (isAccountBlocked()) {
+      <p
+        data-account-blocked
+        role="alert"
+        class="rounded-control bg-danger-surface p-4 text-small font-semibold text-danger"
+      >
+        {{ accountBlockMessage() }}
+      </p>
+    } @else if (error(); as message) {
+      <div
+        data-error
+        role="alert"
+        class="flex flex-col gap-3 rounded-control bg-danger-surface p-4 text-small font-semibold text-danger sm:flex-row sm:items-center sm:justify-between"
+      >
+        <span>{{ message }}</span>
+        <button
+          type="button"
+          data-retry
+          [disabled]="busy()"
+          class="min-h-11 rounded-control border border-danger px-4 text-small font-semibold text-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:text-text-secondary"
+          (click)="retry()"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    }
+
+    <div class="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
+      <div
+        class="flex flex-col gap-6 lg:rounded-card lg:border lg:border-border lg:bg-background lg:p-8"
+      >
+        <div class="flex flex-col gap-4 rounded-card bg-background p-5 lg:contents">
+          <div class="flex flex-col items-center gap-3 lg:hidden">
+            <span
+              data-waiting-badge
+              class="rounded-full bg-warning-surface px-3 py-1 text-caption font-semibold text-text-primary"
+            >
+              AGUARDANDO PAGAMENTO
+            </span>
+            <img src="qr-code.png" alt="QR Code Pix simulado" class="size-40" />
+          </div>
+
+          <span
+            class="hidden w-fit rounded-full bg-surface-muted px-3 py-1 text-caption font-semibold text-tertiary lg:inline-block"
+          >
+            PAGAMENTO VIA PIX
+          </span>
+
+          <div class="flex flex-col gap-2 lg:gap-4">
+            <h2 class="text-caption font-semibold text-text-primary lg:text-title-small lg:font-bold">
+              Código Pix Copia e Cola
+            </h2>
+            <p
+              data-pix-code
+              class="select-all truncate rounded-control bg-surface-muted px-3 py-2 font-mono text-caption text-text-secondary lg:min-h-24 lg:overflow-visible lg:whitespace-normal lg:break-all lg:p-4 lg:text-small"
+            >
+              {{ pixCode() }}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            data-copy
+            class="flex min-h-12 w-full items-center justify-center gap-2 rounded-control bg-primary px-4 text-small font-semibold text-on-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary lg:border lg:border-border lg:bg-background"
+            (click)="copy()"
+          >
+            <img src="icons/copy.svg" alt="" aria-hidden="true" class="h-4 w-4 lg:hidden" />
+            {{ copyButtonLabel() }}
+          </button>
+          <p
+            data-copy-status
+            role="status"
+            class="text-small font-semibold empty:hidden"
+            [class]="copyState() === 'failed' ? 'text-danger' : 'text-text-secondary'"
+          >
+            {{ copyStatusMessage() }}
+          </p>
+        </div>
+
+        <ol class="flex flex-col gap-4 rounded-card bg-background p-5 lg:gap-6 lg:p-0">
+          @for (step of steps; track step; let index = $index) {
+            <li data-step class="flex items-center gap-3">
+              <span
+                aria-hidden="true"
+                class="flex size-6 shrink-0 items-center justify-center rounded-full bg-tertiary text-caption font-semibold text-on-tertiary lg:h-8 lg:w-16 lg:bg-warning-surface lg:text-text-primary"
+              >
+                {{ index + 1 }}
+              </span>
+              <span class="text-caption text-text-secondary lg:text-small">{{ step }}</span>
+            </li>
+          }
+        </ol>
+      </div>
+
+      <div
+        class="flex flex-col gap-4 lg:rounded-card lg:border lg:border-border lg:bg-background lg:p-8"
+      >
+        <div class="hidden flex-col items-center gap-4 lg:flex">
+          <span
+            data-waiting-badge
+            class="self-start rounded-full bg-warning-surface px-3 py-1 text-caption font-semibold text-text-primary"
+          >
+            AGUARDANDO PAGAMENTO
+          </span>
+          <img src="qr-code.png" alt="QR Code Pix simulado" class="size-44" />
+          <p class="text-small text-text-primary">Escaneie com o app do seu banco</p>
+          <p data-amount class="hidden text-body font-bold text-tertiary lg:block">
+            Valor &middot; {{ amountLabel() }}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          data-approve="mobile"
+          [disabled]="busy() || isAccountBlocked()"
+          class="flex min-h-12 w-full items-center justify-center gap-2 rounded-control bg-secondary px-4 text-small font-semibold text-on-tertiary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:bg-control-disabled disabled:text-text-secondary lg:hidden"
+          (click)="approve()"
+        >
+          <img src="icons/sync.svg" alt="" aria-hidden="true" class="h-4 w-4" />
+          Já realizei o pagamento
+        </button>
+
+        <button
+          type="button"
+          data-approve="desktop"
+          [disabled]="busy() || isAccountBlocked()"
+          class="hidden min-h-12 w-full items-center justify-center rounded-control bg-primary px-4 text-small font-semibold text-on-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:bg-control-disabled disabled:text-text-secondary lg:flex"
+          (click)="approve()"
+        >
+          Já realizei o pagamento
+        </button>
+
+        <button
+          type="button"
+          data-cancel
+          [disabled]="busy()"
+          class="min-h-11 w-full rounded-control border border-danger px-4 text-small font-semibold text-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:border-border disabled:text-text-secondary"
+          (click)="cancel()"
+        >
+          Cancelar pedido
+        </button>
+
+        <div
+          data-sandbox
+          class="flex flex-col gap-2 rounded-control border border-dashed border-border bg-surface-muted p-4"
+        >
+          <p class="text-caption font-semibold text-text-secondary">Ambiente de teste (sandbox)</p>
+          <button
+            type="button"
+            data-fail
+            [disabled]="busy()"
+            class="min-h-11 w-full rounded-control border border-border bg-background px-4 text-small font-semibold text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:text-text-secondary"
+            (click)="simulateFailure()"
+          >
+            Simular falha / expiração
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+}

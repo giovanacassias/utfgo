@@ -1,0 +1,242 @@
+<ng-template #piggyBank>
+  <img
+    data-piggy-bank
+    src="cofrinho.png"
+    alt=""
+    aria-hidden="true"
+    width="400"
+    height="400"
+    class="size-32 shrink-0 object-contain lg:size-36"
+  />
+</ng-template>
+
+<section class="mx-auto flex max-w-6xl flex-col gap-6 lg:gap-8">
+  <a
+    routerLink="/inicio"
+    aria-label="Voltar"
+    class="inline-flex min-h-11 min-w-11 w-fit items-center justify-center text-title font-bold text-text-primary focus-visible:outline-2 focus-visible:outline-tertiary lg:hidden"
+  >
+    &larr;
+  </a>
+
+  <header class="flex items-center justify-between gap-4">
+    <div class="flex flex-col gap-1">
+      <p class="hidden text-caption font-semibold uppercase text-tertiary lg:block">
+        Carteira UTFgo
+      </p>
+      <h1 class="text-display font-extrabold text-text-primary">
+        Cofrinho<br class="lg:hidden" /><span class="hidden lg:inline">{{ ' ' }}</span
+        ><span class="text-primary lg:text-text-primary">UTF</span>go
+      </h1>
+      <p class="hidden text-body text-text-secondary lg:block">
+        Acompanhe seu saldo e as movimentações da sua carteira.
+      </p>
+    </div>
+    <div class="lg:hidden">
+      <ng-container [ngTemplateOutlet]="piggyBank" />
+    </div>
+  </header>
+
+  @if (isAccountBlocked()) {
+    <p
+      role="alert"
+      class="rounded-control bg-danger-surface p-4 text-small font-semibold text-danger"
+    >
+      {{ accountBlockMessage() }}
+    </p>
+  }
+
+  @if (error(); as message) {
+    <div
+      role="alert"
+      class="flex flex-col gap-3 rounded-control bg-danger-surface p-4 text-small text-danger"
+    >
+      <p class="font-semibold">{{ message }}</p>
+      <button
+        type="button"
+        class="min-h-12 w-fit rounded-control bg-secondary px-4 text-small font-semibold text-on-tertiary focus-visible:outline-2 focus-visible:outline-tertiary"
+        (click)="retry()"
+      >
+        Tentar novamente
+      </button>
+    </div>
+  }
+
+  @if (loading()) {
+    <p data-wallet-loading role="status" class="text-small text-text-secondary">Carregando carteira...</p>
+  }
+
+  <div class="flex flex-col gap-6 lg:grid lg:grid-cols-3 lg:gap-6">
+    @if (wallet(); as currentWallet) {
+      <div
+        class="flex flex-row items-end justify-between gap-4 lg:col-span-2 lg:items-stretch lg:rounded-card lg:border lg:border-border lg:bg-background lg:p-8"
+      >
+        <div class="flex flex-col gap-1 lg:flex-1 lg:justify-between lg:gap-4">
+          <div class="flex flex-col gap-1">
+            <span class="text-small font-semibold uppercase text-text-primary lg:text-caption lg:text-text-secondary">
+              Saldo de fichas
+            </span>
+            <p
+              data-wallet-balance
+              class="flex items-baseline gap-2 whitespace-nowrap font-extrabold text-primary lg:text-text-primary"
+            >
+              <span data-wallet-balance-amount class="text-display lg:text-brand">{{ currentWallet.tokenBalance }}</span>{{ ' ' }}<span
+                data-wallet-balance-unit
+                class="text-title-small lg:text-body lg:font-semibold"
+                >{{ tokensUnit(currentWallet.tokenBalance) }}</span
+              >
+            </p>
+            <p data-wallet-balance-brl class="text-small text-text-primary lg:font-semibold lg:text-tertiary">
+              Equivalente a {{ formatBrl(walletBalanceCents()) }}
+            </p>
+            <p class="text-caption text-text-secondary lg:hidden">{{ rateLabel }}</p>
+          </div>
+
+          <div class="hidden gap-3 lg:flex">
+            <ng-container [ngTemplateOutlet]="actions" [ngTemplateOutletContext]="{ desktop: true }" />
+          </div>
+        </div>
+
+        <div class="flex w-40 flex-col gap-3 lg:hidden">
+          <ng-container [ngTemplateOutlet]="actions" [ngTemplateOutletContext]="{ desktop: false }" />
+        </div>
+
+        <div class="hidden lg:block">
+          <ng-container [ngTemplateOutlet]="piggyBank" />
+        </div>
+      </div>
+    }
+
+    <div
+      data-rate-card
+      class="hidden flex-col gap-2 rounded-card border border-border bg-background p-6 lg:col-start-3 lg:row-start-1 lg:flex"
+    >
+      <p class="text-caption font-semibold uppercase text-text-secondary">Valor por viagem</p>
+      <p class="text-title font-extrabold text-text-primary">{{ rateLabel }}</p>
+      <p class="text-small text-text-secondary">
+        Sem taxa comercial. Uso exclusivo nas caronas da comunidade.
+      </p>
+    </div>
+  </div>
+
+  <ng-template #actions let-desktop="desktop">
+    <button
+      type="button"
+      disabled
+      class="flex min-h-12 flex-1 flex-col items-center justify-center rounded-control bg-control-disabled px-4 text-small font-semibold leading-tight text-text-secondary focus-visible:outline-2 focus-visible:outline-tertiary"
+    >
+      Doar fichas
+      <span data-coming-soon class="text-caption font-normal">Em breve</span>
+    </button>
+    @if (isAccountBlocked()) {
+      <button
+        type="button"
+        disabled
+        class="min-h-12 flex-1 rounded-control bg-control-disabled px-4 text-small font-semibold text-text-secondary focus-visible:outline-2 focus-visible:outline-tertiary"
+      >
+        Comprar fichas
+      </button>
+    } @else {
+      <a
+        routerLink="/cofrinho/comprar"
+        class="flex min-h-12 flex-1 items-center justify-center rounded-control px-4 text-small font-semibold focus-visible:outline-2 focus-visible:outline-tertiary"
+        [class]="desktop ? 'bg-primary text-on-primary' : 'bg-secondary text-on-tertiary'"
+      >
+        Comprar fichas
+      </a>
+    }
+  </ng-template>
+
+  <div class="flex flex-col gap-4 lg:rounded-card lg:border lg:border-border lg:bg-background lg:p-8">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <h2 class="text-title-small font-bold lg:text-title">Extrato do Cofrinho</h2>
+
+      <div class="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:flex-wrap lg:overflow-visible" role="group" aria-label="Filtrar extrato">
+        @for (option of filters; track option.value) {
+          <button
+            type="button"
+            data-statement-filter
+            class="min-h-11 shrink-0 rounded-full border px-4 text-small font-semibold focus-visible:outline-2 focus-visible:outline-tertiary"
+            [class]="filterClasses(statementFilter() === option.value)"
+            [attr.aria-pressed]="statementFilter() === option.value"
+            (click)="selectFilter(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-3 lg:gap-0">
+      @for (transaction of filteredTransactions(); track transaction.order.id) {
+        <article
+          data-statement-item
+          class="flex flex-col gap-3 rounded-card border border-border bg-background p-4 lg:rounded-none lg:border-0 lg:border-t lg:px-0 lg:py-5"
+        >
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <span
+                aria-hidden="true"
+                class="flex size-12 shrink-0 items-center justify-center rounded-full bg-warning-surface text-body font-bold text-primary lg:hidden"
+              >
+                $
+              </span>
+              <div class="flex flex-col gap-1">
+                <p class="flex items-center gap-2 text-small font-semibold text-text-primary lg:text-body">
+                  <span aria-hidden="true" class="hidden size-2 shrink-0 rounded-full bg-primary lg:block"></span>
+                  {{ title(transaction) }}
+                </p>
+                <p class="text-caption text-text-secondary lg:pl-4">
+                  {{ transaction.order.createdAt | date: 'dd/MM/yyyy HH:mm' }} ·
+                  {{ statusLabel(transaction) }}
+                </p>
+              </div>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+              <p class="text-small font-bold text-text-primary lg:text-body">
+                {{ tokensLabel(transaction.order.tokensCount) }}
+              </p>
+              <p class="text-caption text-text-secondary">
+                {{ formatBrl(transaction.order.amountCents) }}
+              </p>
+            </div>
+          </div>
+
+          @if (transaction.order.status === 'PENDING') {
+            <div class="flex flex-wrap gap-2">
+              <button
+                type="button"
+                class="min-h-11 rounded-control bg-primary px-4 text-small font-semibold text-on-primary focus-visible:outline-2 focus-visible:outline-tertiary disabled:bg-control-disabled disabled:text-text-secondary"
+                [disabled]="isAccountBlocked() || loading()"
+                (click)="resumeOrder(transaction.order.id)"
+              >
+                Retomar pagamento
+              </button>
+              <button
+                type="button"
+                class="min-h-11 rounded-control border border-danger px-4 text-small font-semibold text-danger focus-visible:outline-2 focus-visible:outline-tertiary disabled:text-text-secondary"
+                [disabled]="loading()"
+                (click)="cancelOrder(transaction.order.id)"
+              >
+                Cancelar pedido
+              </button>
+            </div>
+          }
+        </article>
+      } @empty {
+        @if (wallet()) {
+          <p
+            data-statement-empty
+            class="rounded-card bg-surface-muted p-4 text-small text-text-secondary"
+          >
+            @if (transactions().length === 0) {
+              Você ainda não tem movimentações. Compre fichas para começar.
+            } @else {
+              Nenhum pedido corresponde a este filtro.
+            }
+          </p>
+        }
+      }
+    </div>
+  </div>
+</section>

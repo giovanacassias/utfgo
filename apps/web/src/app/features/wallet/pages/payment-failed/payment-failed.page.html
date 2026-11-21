@@ -1,0 +1,190 @@
+@if (ready()) {
+  <section class="mx-auto flex max-w-6xl flex-col gap-6 lg:gap-8">
+    <a
+      routerLink="/cofrinho/pagamento"
+      aria-label="Voltar"
+      class="inline-flex min-h-11 min-w-11 w-fit items-center justify-center text-title font-bold text-text-primary focus-visible:outline-2 focus-visible:outline-tertiary lg:hidden"
+    >
+      &larr;
+    </a>
+
+    <header class="flex flex-col items-center gap-3 text-center lg:hidden">
+      <img
+        src="payment-failed.png"
+        alt=""
+        aria-hidden="true"
+        width="400"
+        height="400"
+        class="size-44 object-contain"
+      />
+      <h1 data-title-mobile class="text-display font-extrabold text-text-primary">
+        <span class="block text-danger">Falha</span>{{ ' ' }}<span class="block">no pagamento</span>
+      </h1>
+      <p data-subtitle class="text-small text-text-secondary">{{ texts().subtitle }}</p>
+    </header>
+
+    <header class="hidden flex-col gap-1 lg:flex">
+      <p data-eyebrow class="text-caption font-semibold uppercase text-tertiary">
+        PAGAMENTO NÃO CONCLUÍDO
+      </p>
+      <h1 data-title-desktop class="text-display font-extrabold text-text-primary">
+        Falha no pagamento
+      </h1>
+      <p class="text-body text-text-secondary">{{ texts().subtitle }}</p>
+    </header>
+
+    @if (navigationFailed()) {
+      <div
+        data-navigation-error
+        role="alert"
+        class="flex flex-col gap-3 rounded-control bg-danger-surface p-4 text-small font-semibold text-danger sm:flex-row sm:items-center sm:justify-between"
+      >
+        <span>Não foi possível abrir a próxima tela. Volte ao Cofrinho para ver o seu pedido.</span>
+        <a
+          data-back-to-wallet
+          routerLink="/cofrinho"
+          class="inline-flex min-h-11 items-center justify-center rounded-control border border-danger px-4 text-small font-semibold text-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary"
+        >
+          Voltar ao Cofrinho
+        </a>
+      </div>
+    } @else if (error(); as message) {
+      <div
+        data-error
+        role="alert"
+        class="flex flex-col gap-3 rounded-control bg-danger-surface p-4 text-small font-semibold text-danger sm:flex-row sm:items-center sm:justify-between"
+      >
+        <span>{{ message }}</span>
+        <button
+          type="button"
+          data-retry
+          [disabled]="busy()"
+          class="min-h-11 rounded-control border border-danger px-4 text-small font-semibold text-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:text-text-secondary"
+          (click)="retry()"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    }
+
+    <div class="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
+      <div
+        class="hidden flex-col gap-4 lg:flex lg:rounded-card lg:border lg:border-border lg:bg-background lg:p-8"
+      >
+        <img
+          src="payment-failed.png"
+          alt=""
+          aria-hidden="true"
+          width="400"
+          height="400"
+          class="size-32 object-contain"
+        />
+        <span
+          data-pill
+          class="w-fit rounded-full bg-danger-surface px-3 py-1 text-caption font-semibold text-danger"
+        >
+          {{ texts().pill }}
+        </span>
+        <h2 data-desktop-headline class="text-title font-extrabold text-text-primary">
+          {{ texts().desktopHeadline }}
+        </h2>
+        <p data-desktop-text class="text-small text-text-secondary">
+          Nenhuma cobrança foi realizada. Escolha outra forma de pagamento para tentar novamente.
+        </p>
+        <div class="flex flex-col gap-3">
+          <button
+            type="button"
+            data-try-again="desktop"
+            [disabled]="busy()"
+            class="min-h-12 w-full rounded-control bg-primary px-4 text-small font-semibold text-on-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:bg-control-disabled disabled:text-text-secondary"
+            (click)="tryAgain()"
+          >
+            Tentar novamente
+          </button>
+          <button
+            type="button"
+            data-other-method="desktop"
+            [disabled]="busy()"
+            class="min-h-12 w-full rounded-control border border-border bg-background px-4 text-small font-semibold text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:text-text-secondary"
+            (click)="chooseOtherMethod()"
+          >
+            Escolher outra forma de pagamento
+          </button>
+        </div>
+      </div>
+
+      <div
+        class="overflow-hidden rounded-card bg-background lg:rounded-card lg:border lg:border-border"
+      >
+        <h2
+          class="bg-secondary px-4 py-3 text-caption font-semibold uppercase text-on-tertiary lg:bg-transparent lg:px-8 lg:pb-0 lg:pt-8 lg:text-text-secondary"
+        >
+          Resumo do pedido
+        </h2>
+        <dl class="flex flex-col gap-1 p-4 lg:gap-3 lg:p-8">
+          <div class="flex items-center justify-between gap-4 lg:flex-col lg:items-start lg:gap-1">
+            <dt class="text-small text-text-secondary lg:text-caption">Quantidade solicitada</dt>
+            <dd data-summary-quantity class="text-small font-bold text-text-primary lg:text-body lg:font-semibold">
+              {{ quantityLabel() }}
+            </dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 lg:flex-col lg:items-start lg:gap-1">
+            <dt class="text-small text-text-secondary lg:text-caption">Total do pedido</dt>
+            <dd data-summary-total class="text-small font-bold text-text-primary lg:text-body lg:font-semibold">
+              {{ totalLabel() }}
+            </dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 lg:flex-col lg:items-start lg:gap-1">
+            <dt class="text-small text-text-secondary lg:text-caption">Data e horário</dt>
+            <dd data-summary-date class="text-small font-bold text-text-primary lg:text-body lg:font-semibold">
+              {{ payment()?.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+            </dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 lg:flex-col lg:items-start lg:gap-1">
+            <dt class="text-small text-text-secondary lg:text-caption">ID da Transação</dt>
+            <dd data-summary-transaction class="break-all text-right text-small font-bold text-text-primary lg:text-left lg:text-body lg:font-semibold">
+              {{ payment()?.gatewayPaymentId }}
+            </dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 lg:flex-col lg:items-start lg:gap-1">
+            <dt class="text-small text-text-secondary lg:text-caption">Motivo da falha</dt>
+            <dd data-summary-reason class="text-right text-small font-bold text-danger lg:text-left lg:text-body lg:font-semibold">
+              {{ texts().reason }}
+            </dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="flex flex-col gap-3 lg:hidden">
+        <button
+          type="button"
+          data-try-again="mobile"
+          [disabled]="busy()"
+          class="min-h-12 w-full rounded-control bg-primary px-4 text-small font-semibold text-on-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:bg-control-disabled disabled:text-text-secondary"
+          (click)="tryAgain()"
+        >
+          Tentar novamente
+        </button>
+        <button
+          type="button"
+          data-other-method="mobile"
+          [disabled]="busy()"
+          class="min-h-12 w-full rounded-control bg-secondary px-4 text-small font-semibold text-on-tertiary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:bg-control-disabled disabled:text-text-secondary"
+          (click)="chooseOtherMethod()"
+        >
+          Escolher outra forma de pagamento
+        </button>
+      </div>
+
+      <button
+        type="button"
+        data-cancel
+        [disabled]="busy()"
+        class="min-h-11 w-full rounded-control border border-danger px-4 text-small font-semibold text-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:border-border disabled:text-text-secondary lg:col-span-2"
+        (click)="cancel()"
+      >
+        Cancelar pedido
+      </button>
+    </div>
+  </section>
+}

@@ -1,0 +1,182 @@
+<section class="mx-auto flex max-w-6xl flex-col gap-6 lg:gap-8">
+  <a
+    routerLink="/cofrinho"
+    aria-label="Voltar"
+    class="inline-flex min-h-11 min-w-11 w-fit items-center justify-center text-title font-bold text-text-primary focus-visible:outline-2 focus-visible:outline-tertiary lg:hidden"
+  >
+    &larr;
+  </a>
+
+  <header class="flex flex-col gap-1">
+    <p class="hidden text-caption font-semibold uppercase text-tertiary lg:block">Cofrinho</p>
+    <h1 class="text-title font-extrabold text-text-primary lg:text-display">
+      Quantas fichas você deseja comprar?
+    </h1>
+    <p class="text-small text-text-secondary lg:text-body">Cada ficha equivale a uma viagem</p>
+  </header>
+
+  @if (isAccountBlocked()) {
+    <p
+      data-account-blocked
+      role="alert"
+      class="rounded-control bg-danger-surface p-4 text-small font-semibold text-danger"
+    >
+      {{ accountBlockMessage() }}
+    </p>
+  }
+
+  @if (wallet(); as currentWallet) {
+    <div
+      data-balance-mobile
+      class="flex items-center gap-4 rounded-card bg-background p-4 lg:hidden"
+    >
+      <span
+        aria-hidden="true"
+        class="flex size-12 shrink-0 items-center justify-center rounded-control bg-primary text-body font-bold text-on-primary"
+      >
+        $
+      </span>
+      <div class="flex flex-col">
+        <span class="text-caption font-semibold uppercase text-text-primary">Saldo no cofrinho</span>
+        <p class="text-small text-text-secondary">
+          <span class="text-body font-bold text-text-primary">{{ currentWallet.tokenBalance }}</span>
+          {{ currentWallet.tokenBalance === 1 ? 'ficha ativa' : 'fichas ativas' }}
+        </p>
+      </div>
+    </div>
+  }
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="advance()"
+    class="flex flex-col gap-6 lg:grid lg:grid-cols-3 lg:items-start"
+  >
+    <div class="flex flex-col gap-4 lg:col-span-2 lg:rounded-card lg:border lg:border-border lg:bg-background lg:p-8">
+      <div class="hidden flex-col gap-1 lg:flex">
+        <h2 class="text-title-small font-bold text-text-primary">Escolha uma quantidade</h2>
+        <p class="text-small text-text-secondary">Você pode comprar mais fichas quando precisar.</p>
+      </div>
+
+      <div
+        role="radiogroup"
+        aria-label="Pacotes de fichas"
+        class="flex flex-col gap-3 lg:grid lg:grid-cols-3 lg:gap-4"
+      >
+        @for (option of packages; track option) {
+          <button
+            type="button"
+            role="radio"
+            [attr.data-package]="option"
+            [attr.aria-checked]="isSelected(option)"
+            [disabled]="isAccountBlocked()"
+            class="flex min-h-12 items-center justify-between gap-4 rounded-card border p-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:border-border disabled:bg-control-disabled disabled:text-text-secondary lg:min-h-36 lg:flex-col lg:items-start lg:justify-start lg:rounded-control"
+            [class]="packageClasses(option)"
+            (click)="selectPackage(option)"
+          >
+            <span class="flex items-center gap-3">
+              <span
+                aria-hidden="true"
+                class="size-6 shrink-0 rounded-full border lg:hidden"
+                [class]="isSelected(option) ? 'border-on-tertiary bg-primary' : 'border-border bg-surface-muted'"
+              ></span>
+              <span class="text-body font-bold">{{ tokensLabel(option) }}</span>
+            </span>
+            <span
+              class="text-body font-bold lg:text-small lg:font-semibold"
+              [class]="isSelected(option) ? 'text-on-tertiary' : 'text-text-primary lg:text-tertiary'"
+              >{{ formatBrl(totalFor(option)) }}</span
+            >
+          </button>
+        }
+      </div>
+
+      <div
+        data-custom-field
+        class="flex flex-col gap-2 rounded-card bg-background p-4 lg:rounded-none lg:bg-transparent lg:p-0"
+      >
+        <label for="custom-quantity" class="text-body font-bold text-text-primary lg:text-small lg:font-semibold lg:text-text-secondary">
+          <span class="lg:hidden">Personalizado</span>
+          <span class="hidden lg:inline">Quantidade personalizada</span>
+        </label>
+        <input
+          id="custom-quantity"
+          data-custom-input
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          formControlName="quantity"
+          placeholder="Ex.: 8"
+          [attr.aria-invalid]="errorMessage() ? 'true' : null"
+          [attr.aria-describedby]="'custom-quantity-feedback'"
+          class="min-h-12 w-full rounded-control border bg-background px-4 text-body text-text-primary focus-visible:outline-2 focus-visible:outline-tertiary disabled:bg-control-disabled disabled:text-text-secondary"
+          [class]="errorMessage() ? 'border-danger' : 'border-border'"
+          (input)="onCustomInput()"
+          (blur)="onCustomBlur()"
+        />
+        <div id="custom-quantity-feedback">
+          @if (errorMessage(); as message) {
+            <p role="alert" class="rounded-control bg-danger-surface p-3 text-small font-semibold text-danger">
+              {{ message }}
+            </p>
+          } @else if (showHint()) {
+            <p data-hint class="text-small text-text-secondary">{{ hintMessage }}</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <aside
+      class="flex flex-col gap-4 rounded-card bg-background p-4 lg:border lg:border-border lg:p-8"
+      aria-label="Resumo da compra"
+    >
+      @if (wallet(); as currentWallet) {
+        <div data-balance-desktop class="hidden flex-col gap-1 border-b border-border pb-4 lg:flex">
+          <span class="text-caption font-semibold uppercase text-text-secondary">Saldo atual</span>
+          <p class="text-title font-extrabold text-text-primary">
+            {{ tokensLabel(currentWallet.tokenBalance) }}
+          </p>
+        </div>
+      }
+
+      <dl class="flex flex-col gap-3">
+        <div class="flex items-center justify-between gap-4 lg:flex-col lg:items-start lg:gap-1">
+          <dt class="text-small text-text-secondary lg:text-caption">Quantidade selecionada</dt>
+          <dd data-summary-quantity class="text-small font-semibold text-text-primary lg:text-body">
+            @if (tokensCount(); as count) {
+              {{ tokensLabel(count) }}
+            } @else {
+              —
+            }
+          </dd>
+        </div>
+        <div class="flex items-center justify-between gap-4 lg:flex-col lg:items-start lg:gap-1">
+          <dt class="text-small text-text-secondary lg:text-caption">Valor por ficha</dt>
+          <dd data-summary-unit class="text-small font-semibold text-text-primary lg:text-body">
+            {{ unitPriceLabel }}
+          </dd>
+        </div>
+        <div class="flex items-center justify-between gap-4 lg:flex-col lg:items-start lg:gap-1">
+          <dt class="text-small text-text-secondary lg:text-caption">Total</dt>
+          <dd data-summary-total class="text-body font-bold text-text-primary lg:text-title-small">
+            @if (totalCents(); as cents) {
+              {{ formatBrl(cents) }}
+            } @else {
+              —
+            }
+          </dd>
+        </div>
+      </dl>
+
+      <button
+        type="submit"
+        data-submit
+        [disabled]="!canAdvance()"
+        class="min-h-12 w-full rounded-control bg-primary px-4 text-small font-semibold text-on-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:bg-control-disabled disabled:text-text-secondary"
+      >
+        Ir para pagamento
+      </button>
+
+      <p class="hidden text-caption text-text-secondary lg:block">Pagamento seguro por Pix ou cartão.</p>
+    </aside>
+  </form>
+</section>

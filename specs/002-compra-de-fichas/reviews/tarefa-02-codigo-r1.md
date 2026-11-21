@@ -1,0 +1,18 @@
+# Parecer de Código — Tarefa 2
+
+**Veredito:** APROVADO
+
+## Apontamentos (bloqueiam)
+*(Nenhum apontamento bloqueante encontrado.)*
+
+## Sugestões (não bloqueiam)
+- **Guarda de concorrência em `loadWalletData()`** — `apps/web/src/app/features/wallet/services/wallet.service.ts:202-240`: diferentemente de `createOrderAndPayment` (`linha 247`) e `createPaymentForOrder` (`linha 317`), `loadWalletData()` não verifica `this._loading()` nem usa estado de carregamento isolado. Se for chamado duas vezes em paralelo (ou durante uma criação de pedido em andamento), o `finally` (`linha 238`) da primeira chamada a concluir pode redefinir `loading` para `false` antes da outra terminar, ou uma resposta antiga pode sobrescrever uma mais recente. Considere adicionar guarda de reentrância ou flags separadas de carregamento/mutação.
+- **Possível `Order` `PENDING` órfã em falha parcial de `createOrderAndPayment()`** — `apps/web/src/app/features/wallet/services/wallet.service.ts:280-313`: quando `POST /orders` obtém sucesso e `POST /payments` falha, a `Order` fica persistida no `json-server`, mas não entra em `_orders` (conforme validado no teste em `wallet.service.spec.ts:715-746`). Na Tarefa 3 (`CA15` / compensação) ou na futura troca pelo endpoint atômico NestJS (`POST /payments/orders`, marcado com `// TODO #2`), vale considerar compensação *best-effort* (`DELETE /orders/${order.id}`) ou sincronização do pedido pendente em caso de falha do `POST /payments`, evitando pedidos órfãos com `latestPayment: null` após recarga.
+- **Pré-condição de usuário carregado antes de mutações** — `apps/web/src/app/features/wallet/services/wallet.service.ts:77-91, 251-255, 321-325`: quando `_user()` ainda é `null` (antes de `loadWalletData()` concluir), `isAccountBlocked()` retorna `false` e `accountBlockMessage()` retorna `null`. Nas páginas futuras (ex.: entrada direta em `/wallet/buy`), garanta que `loadWalletData()` seja concluído quando `user()` for `null` ou valide a presença de `user()` antes de criar pedidos, evitando que contas `SUSPENDED`/`BANNED` iniciem compra antes da carga inicial.
+- **Distinção de erros HTTP em `formatNetworkError()`** — `apps/web/src/app/features/wallet/services/wallet.service.ts:401-407`: o método diferencia apenas `status === 0` e devolve `fallbackMessage` para qualquer outro erro (HTTP 4xx/5xx ou exceções inesperadas dentro do `try`). Nas próximas evoluções, considerar tratar `HttpErrorResponse` com status específicos (ou extrair `message` seguro quando a API NestJS estiver integrada) melhora a rastreabilidade sem engolir contexto de diagnóstico.
+
+## Observações fora do escopo deste diff
+- **`WALLET_API_URL` com provisão dupla** — `apps/web/src/app/app.config.ts:12-15, 23`: o `InjectionToken` já define `providedIn: 'root'` com `factory` e também é fornecido explicitamente no array `providers` de `appConfig` (pré-existente da Tarefa 1).
+- **Stylesheet por componente no componente raiz** — `apps/web/src/app/app.ts:7`: o componente raiz `App` ainda possui `styleUrl: './app.css'`, divergindo de `.agents/rules/01-angular-strict-rules.md` §2 (limpeza já prevista para a Tarefa 4 do `plan.md`).
+- **Divergência documental menor entre regras e arquitetura sobre pasta de services** — `.agents/rules/01-angular-strict-rules.md` §3 cita `core/` para "services de dados", enquanto `docs/architecture.md` §4 determina que a camada de serviço específica do domínio reside em `src/app/features/<domínio>/`. A implementação seguiu corretamente o `docs/architecture.md` e o `plan.md`; fica registrada para eventual alinhamento da regra em Issue de manutenção.
+- **Working tree pré-existente:** `docs/checklist.md` possui alteração pré-existente fora do escopo desta tarefa (conforme informado no despacho).

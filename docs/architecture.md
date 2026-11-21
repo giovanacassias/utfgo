@@ -73,6 +73,7 @@
 ### 🧪 2.4. Comandos Exatos de Testes e Lint
 - **Backend (`apps/api`):**
   - Mock local: `npm run api` (executa `node apps/api/server.cjs` na porta `3000`)
+  - Ambiente de desenvolvimento em um só terminal: `npm run dev` (sobe o backend e o frontend juntos, com logs prefixados). O script `backend` é o ponto de troca: hoje aponta para o mock (`npm run api`); ao migrar para um BaaS ou para um backend real, basta apontar `backend` para o novo comando (ou removê-lo, deixando `dev` só com o frontend).
 - **Frontend (`apps/web`):**
   - Execução de testes: `npm test` (executa `ng test --watch=false`)
   - Testes em modo watch (TDD): `npm run test:watch` (executa `ng test`)
@@ -96,7 +97,7 @@
 ├── specs/                   # Especificações, planos e revisões por história
 └── apps/
     ├── api/                 # Mock json-server do MVP; backend real fica para evolução futura
-    │   ├── db.json          # Seed local de usuários da US01
+    │   ├── db.json          # Seed local do mock (usuários e carteiras da US01; pedidos e pagamentos da US02)
     │   ├── server.cjs       # Rota de OTP simulado + router json-server
     │   └── README.md
     └── web/                 # Frontend Angular 22 Standalone

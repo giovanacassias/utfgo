@@ -1,0 +1,184 @@
+<section class="mx-auto flex max-w-6xl flex-col gap-6 lg:gap-8">
+  <a
+    routerLink="/cofrinho/comprar"
+    aria-label="Voltar"
+    class="inline-flex min-h-11 min-w-11 w-fit items-center justify-center text-title font-bold text-text-primary focus-visible:outline-2 focus-visible:outline-tertiary lg:hidden"
+  >
+    &larr;
+  </a>
+
+  <header class="flex flex-col gap-1">
+    <p class="hidden text-caption font-semibold uppercase text-tertiary lg:block">
+      Cofrinho &middot; Pagamento
+    </p>
+    <h1 class="text-title font-extrabold text-text-primary lg:text-display">
+      <span class="lg:hidden">Qual o método de pagamento?</span>
+      <span class="hidden lg:inline">Escolha como deseja pagar</span>
+    </h1>
+    <p class="text-small text-text-secondary lg:hidden">Escolha como deseja pagar suas fichas</p>
+    <p class="hidden text-body text-text-secondary lg:block">
+      {{ tokensLabel() }} selecionadas &middot; {{ totalLabel() }} no total.
+    </p>
+  </header>
+
+  @if (isAccountBlocked()) {
+    <p
+      data-account-blocked
+      role="alert"
+      class="rounded-control bg-danger-surface p-4 text-small font-semibold text-danger"
+    >
+      {{ accountBlockMessage() }}
+    </p>
+  } @else if (error(); as message) {
+    <div
+      data-error
+      role="alert"
+      class="flex flex-col gap-3 rounded-control bg-danger-surface p-4 text-small font-semibold text-danger sm:flex-row sm:items-center sm:justify-between"
+    >
+      <span>{{ message }}</span>
+      @if (source()) {
+        <button
+          type="button"
+          data-retry
+          [disabled]="!canConfirm()"
+          class="min-h-11 rounded-control border border-danger px-4 text-small font-semibold text-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:text-text-secondary"
+          (click)="confirm()"
+        >
+          Tentar novamente
+        </button>
+      }
+    </div>
+  }
+
+  <div
+    data-cart-mobile
+    class="flex items-center justify-between gap-4 rounded-card bg-background p-4 lg:hidden"
+  >
+    <div class="flex items-center gap-4">
+      <span
+        class="flex size-12 shrink-0 items-center justify-center rounded-control bg-tertiary"
+      >
+        <img src="icons/ticket.svg" alt="" aria-hidden="true" class="h-4 w-5" />
+      </span>
+      <div class="flex flex-col">
+        <span class="text-caption font-semibold uppercase text-text-secondary">
+          Itens no carrinho
+        </span>
+        <span class="text-body font-bold text-text-primary">{{ tokensLabel() }} selecionadas</span>
+      </div>
+    </div>
+    <div class="flex flex-col items-end">
+      <span class="text-caption text-text-secondary">Total a pagar</span>
+      <span class="text-body font-bold text-tertiary">{{ totalLabel() }}</span>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-6 lg:grid lg:grid-cols-3 lg:items-start">
+    <div
+      class="flex flex-col gap-4 lg:col-span-2 lg:rounded-card lg:border lg:border-border lg:bg-background lg:p-8"
+    >
+      <h2 class="hidden text-title-small font-bold text-text-primary lg:block">
+        Forma de pagamento
+      </h2>
+
+      <div role="radiogroup" aria-label="Forma de pagamento" class="flex flex-col gap-3 lg:gap-4">
+        <button
+          type="button"
+          role="radio"
+          data-method="CREDIT_CARD"
+          [attr.aria-checked]="isSelected('CREDIT_CARD')"
+          [disabled]="isAccountBlocked()"
+          class="flex min-h-12 items-center gap-4 rounded-card border p-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:border-border disabled:bg-control-disabled disabled:text-text-secondary"
+          [class]="optionClasses('CREDIT_CARD')"
+          (click)="selectMethod('CREDIT_CARD')"
+        >
+          <span
+            aria-hidden="true"
+            class="size-6 shrink-0 rounded-full border lg:hidden"
+            [class]="
+              isSelected('CREDIT_CARD')
+                ? 'border-tertiary bg-tertiary'
+                : 'border-border bg-surface-muted'
+            "
+          ></span>
+          <span class="flex flex-1 flex-col">
+            <span class="text-body font-bold text-text-primary">Cartão de Crédito (à vista)</span>
+            <span class="text-small text-text-secondary">Visa, Mastercard e Elo</span>
+          </span>
+          <img src="icons/card.svg" alt="" aria-hidden="true" class="h-4 w-5 shrink-0" />
+        </button>
+
+        <button
+          type="button"
+          role="radio"
+          data-method="PIX"
+          [attr.aria-checked]="isSelected('PIX')"
+          [disabled]="isAccountBlocked()"
+          class="flex min-h-12 items-center gap-4 rounded-card border p-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:border-border disabled:bg-control-disabled disabled:text-text-secondary"
+          [class]="optionClasses('PIX')"
+          (click)="selectMethod('PIX')"
+        >
+          <span
+            aria-hidden="true"
+            class="size-6 shrink-0 rounded-full border lg:hidden"
+            [class]="
+              isSelected('PIX') ? 'border-tertiary bg-tertiary' : 'border-border bg-surface-muted'
+            "
+          ></span>
+          <span class="flex flex-1 flex-col">
+            <span class="text-body font-bold text-text-primary">Pix</span>
+            <span class="text-small text-text-secondary">
+              Aprovação instantânea e geração imediata no app
+            </span>
+          </span>
+          <img src="icons/bolt.svg" alt="" aria-hidden="true" class="h-5 w-4 shrink-0" />
+        </button>
+      </div>
+    </div>
+
+    <aside
+      class="flex flex-col gap-4 lg:rounded-card lg:border lg:border-border lg:bg-background lg:p-8"
+      aria-label="Resumo da compra"
+    >
+      <div class="hidden flex-col gap-4 lg:flex">
+        <span class="text-caption font-semibold uppercase text-text-secondary">
+          Itens no carrinho
+        </span>
+        <dl class="flex flex-col gap-3">
+          <div class="flex flex-col gap-1">
+            <dt class="text-caption text-text-secondary">Quantidade</dt>
+            <dd data-summary-quantity class="text-body font-semibold text-text-primary">
+              {{ tokensLabel() }}
+            </dd>
+          </div>
+          <div class="flex flex-col gap-1">
+            <dt class="text-caption text-text-secondary">Valor por ficha</dt>
+            <dd data-summary-unit class="text-body font-semibold text-text-primary">
+              {{ unitPriceLabel }}
+            </dd>
+          </div>
+          <div class="flex flex-col gap-1">
+            <dt class="text-caption text-text-secondary">Total a pagar</dt>
+            <dd data-summary-total class="text-title-small font-bold text-tertiary">
+              {{ totalLabel() }}
+            </dd>
+          </div>
+        </dl>
+      </div>
+
+      <button
+        type="button"
+        data-submit
+        [disabled]="!canConfirm()"
+        class="min-h-12 w-full rounded-control bg-primary px-4 text-small font-semibold text-on-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:bg-control-disabled disabled:text-text-secondary"
+        (click)="confirm()"
+      >
+        {{ buttonLabel() }}
+      </button>
+
+      <p class="hidden text-caption text-text-secondary lg:block">
+        Você poderá acompanhar o pagamento no UTFgo.
+      </p>
+    </aside>
+  </div>
+</section>

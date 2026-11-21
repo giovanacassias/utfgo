@@ -1,0 +1,27 @@
+# Parecer de Código — Tarefa 1
+**Veredito:** APROVADO
+
+## Apontamentos (bloqueiam)
+*(Nenhum apontamento bloqueante. Os modelos de domínio, enums e seed inicial em `wallet.model.ts` e `db.json` aderem integralmente ao glossário e ao diagrama ER do `docs/architecture.md` (§5.1–5.2), a URL de ambiente está externalizada em `environments/` + `fileReplacements` no `angular.json`, não há uso de `any` nem segredos no código, e o setup temporário de `json-server` está restrito a `devDependencies` conforme acordado no `Assume que 2` do `spec.md`.)*
+
+## Sugestões (não bloqueiam)
+- **Mover `WALLET_API_URL` de `app.config.ts` para `core/` e remover a duplicação de provider** — `apps/web/src/app/app.config.ts:9,12-23`
+  - Hoje `WALLET_API_URL` é exportado diretamente de `app.config.ts` (que importa `routes` de `./app.routes`) e registrado duas vezes (`providedIn: 'root'` com `factory` nas linhas 12–15 e `{ provide: WALLET_API_URL, useValue: environment.walletApiUrl }` na linha 23). Quando o `WalletService` (Tarefa 2) importar esse token, a feature `wallet` dependerá do arquivo de bootstrap raiz (`app.config.ts`), puxando `app.routes.ts` e futuros providers/guards globais (como os da Issue #1) para os imports da feature e de seus testes unitários; além disso, `providedIn: 'root'` faz com que testes que esqueçam de fornecer o token usem silenciosamente o valor real de `environment`. Seguindo `docs/architecture.md` (§3, `core/`) e `.agents/rules/01-angular-strict-rules.md` (§3), vale mover o token (preferencialmente genérico, ex.: `API_BASE_URL` / `apiUrl`) para `apps/web/src/app/core/` e apenas provê-lo em `appConfig.providers`.
+
+- **Desacoplar `wallet.model.spec.ts` do `appConfig`, da URL literal de desenvolvimento e da suposição de usuário único no `db.json`** — `apps/web/src/app/features/wallet/models/wallet.model.spec.ts:3-5,85,113,135-148`
+  - O bloco `HTTP and environment configuration` (linhas 135–148) dentro de um spec de modelo de domínio importa `appConfig`, injeta `...appConfig.providers` no `TestBed` e asserta `'http://localhost:3000'`. Esse teste quebrará ao rodar em configuração de `production` (`'/api'`), ao alterar a porta/proxy em `environment.development.ts` quando o `// TODO #2` for resolvido, ou caso `appConfig.providers` receba dependências globais na Issue #1. O teste de wiring do `appConfig` ficaria mais sustentável em um `app.config.spec.ts` dedicado, verificando `expect(apiUrl).toBe(environment.walletApiUrl)`.
+  - A linha 113 (`expect(order.userId).toBe('user-1')` dentro do loop sobre `db.orders`) falhará se outra história ou cenário adicionar um segundo usuário (`user-2`) com pedidos no `db.json` compartilhado na raiz. Verificar integridade referencial contra o conjunto de `db.users` (validando `'user-1'` especificamente em `'order-1'`) evita essa quebra. Vale também atenção ao fato de `db.json` ser mutado em disco pelo `json-server` ao rodar `npm run mock:api` (inclusive se alterado manualmente para testar `CA13` com `SUSPENDED`/`BANNED`, o que faria falhar a linha 85).
+
+- **Planejar a unificação de `User`, `UserRole` e `UserStatus` em `core/` após a Issue #1** — `apps/web/src/app/features/wallet/models/wallet.model.ts:9-23`
+  - Como `features/auth/` está fora de escopo nesta entrega (`spec.md` §4), manter `User` em `wallet.model.ts` evita alterar `auth/` agora. Em três semanas, após o merge da Issue #1, `User` deve ser centralizado em `core/` para que outras features não dupliquem a interface nem violem a regra que proíbe uma feature importar outra (`.agents/rules/01-angular-strict-rules.md` §3).
+
+- **Normalizar `-0` em `tokensToAmountCents`** — `apps/web/src/app/features/wallet/models/wallet.model.ts:72-78`
+  - `Number.isInteger(-0)` é `true` e `-0 < 0` é `false`, fazendo `tokensToAmountCents(-0)` retornar `-0` (`Object.is(-0, 0) === false`). Retornar `tokensCount === 0 ? 0 : tokensCount * TOKEN_UNIT_PRICE_CENTS` elimina esse caso extremo.
+
+## Observações fora do escopo deste diff
+- **`strict: true` ausente nos `tsconfig` do frontend e `no-explicit-any` como `warn` no ESLint** — `apps/web/tsconfig.json:5-16`, `apps/web/tsconfig.app.json`, `apps/web/tsconfig.spec.json`, `eslint.config.mjs:19`
+  - Os arquivos `tsconfig` de `apps/web` habilitam flags isoladas (`noImplicitOverride`, `noImplicitReturns`, etc.), mas não habilitam `"strict": true`, e o ESLint trata `@typescript-eslint/no-explicit-any` como `'warn'` em vez de `'error'`, enfraquecendo a proteção de tipagem estrita exigida em `.agents/rules/01-angular-strict-rules.md` (§1). Candidata a Issue de manutenção.
+- **Arquivo CSS de componente pré-existente no shell raiz** — `apps/web/src/app/app.ts:7`, `apps/web/src/app/app.css`
+  - `App` referencia `styleUrl: './app.css'`, contrariando `.agents/rules/01-angular-strict-rules.md` (§2: proibido criar `.css` por componente; apenas `apps/web/src/styles.css`). Pré-existente ao diff (a limpeza da casca raiz está prevista na Tarefa 4).
+- **Alinhamento futuro de `package.json` / scripts com `docs/architecture.md`** — `docs/architecture.md:29,81`, `apps/web/package.json:11`
+  - `apps/web/package.json` define `"lint": "eslint src"` enquanto `docs/architecture.md` (§2.4) documenta `ng lint`, e `apps/api` ainda não existe na branch (por isso `npm test` e `npm run lint` na raiz executam apenas `apps/web`). Além disso, `json-server` e `db.json` são substitutos temporários (`Assume que 2` / `// TODO #2`) que não compõem a stack definitiva do `docs/architecture.md` (§2) e devem ser removidos após a integração com a API NestJS.
