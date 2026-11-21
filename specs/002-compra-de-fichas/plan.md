@@ -8,7 +8,7 @@
 ## 1. Decisões Técnicas
 
 - **Estrutura de pastas (conforme `docs/architecture.md`):**
-  - `db.json` na raiz do monorepo + script `mock:api` no `package.json` raiz servindo `json-server` na porta `3000` (`users`, `wallets`, `orders`, `payments`).
+  - `apps/api/db.json` (seed único do mock, compartilhado com a US01) servido por `apps/api/server.cjs` via `npm run api` na porta `3000` (`users`, `wallets`, `orders`, `payments`). *(Redação original: `db.json` na raiz + script `mock:api`; ver "Registro de alterações" ao final.)*
   - `apps/web/src/environments/`: `environment.ts` e `environment.development.ts` (com `fileReplacements` em `apps/web/angular.json`) + `InjectionToken` `WALLET_API_URL` e `provideHttpClient()` em `apps/web/src/app/app.config.ts` (evitando URL hardcoded dentro do código de serviço).
   - `apps/web/src/app/features/wallet/`:
     - `models/wallet.model.ts`: entidades `User`, `Wallet`, `Order`, `Payment`, tipos de filtro/estado, constantes da `RN05/06` (`TOKEN_UNIT_PRICE_CENTS = 200`, pacotes `[1, 5, 10, 20]`, faixa `1..100`) e funções puras de formatação/cálculo (`tokensToAmountCents`, `formatBrlFromCents`).
@@ -32,7 +32,7 @@
 - [x] **Tarefa 1 — Setup do `json-server`, configuração HTTP/ambiente e modelos de domínio da carteira**
   - Cobre: `CA1`, `CA3`, `CA4`, `Assume que 1–3`
   - Teste primeiro (`wallet.model.spec.ts`): valida cálculo exato em centavos (`tokensToAmountCents(8) === 1600`), formatação em reais (`formatBrlFromCents(200) === 'R$ 2,00'`), constantes de negócio (`TOKEN_UNIT_PRICE_CENTS = 200`, pacotes `[1, 5, 10, 20]`, mínimo `1`, máximo `100`) e estrutura do seed inicial do `db.json` (`users`, `wallets`, `orders`, `payments` com `user-1` `ACTIVE` e `wallet-1`).
-  - Arquivos previstos: `package.json`, `db.json`, `apps/web/angular.json`, `apps/web/src/environments/environment.ts`, `apps/web/src/environments/environment.development.ts`, `apps/web/src/app/app.config.ts`, `apps/web/src/app/features/wallet/models/wallet.model.ts`, `apps/web/src/app/features/wallet/models/wallet.model.spec.ts`
+  - Arquivos previstos: `package.json`, `apps/api/db.json` (originalmente `db.json` na raiz), `apps/web/angular.json`, `apps/web/src/environments/environment.ts`, `apps/web/src/environments/environment.development.ts`, `apps/web/src/app/app.config.ts`, `apps/web/src/app/features/wallet/models/wallet.model.ts`, `apps/web/src/app/features/wallet/models/wallet.model.spec.ts`
 
 - [x] **Tarefa 2 — `WalletService` (parte 1): carga da carteira/extrato, bloqueio por conta e criação/retentativa de `Order` + `Payment`**
   - Cobre: `CA1`, `CA2`, `CA6`, `CA10`, `CA13`, `CA14`
@@ -79,3 +79,9 @@
 ## 3. Critérios sem tarefa
 
 *(Nenhum — todos os critérios `CA1` a `CA15` estão cobertos pelas 9 tarefas acima.)*
+
+---
+
+## Registro de alterações
+
+- **Unificação do `json-server` (commit `chore: unifica json-server em apps/api/db.json`):** a `develop` não tinha o mock preparado quando as Issues #1 e #2 começaram, e cada história configurou o seu: a US01 usou `json-server` `0.17.4` com `apps/api/server.cjs`, `apps/api/db.json`, proxy `/api` e `npm run api`; a US02 usou `json-server` `^1.0.0-beta.15` com `db.json` na raiz e `npm run mock:api`. Como as duas usam a porta `3000` e versões incompatíveis, ao integrar a `feature/1` na `feature/2` padronizamos no setup da US01: `users`, `wallets`, `orders` e `payments` vivem em `apps/api/db.json`, o `db.json` da raiz e o script `mock:api` foram removidos, e o `wallet.model.spec.ts` passou a ler o seed de `apps/api/db.json`. Nenhum critério de aceite mudou. Decisão registrada a pedido da equipe.
