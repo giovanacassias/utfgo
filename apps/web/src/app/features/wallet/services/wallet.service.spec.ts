@@ -746,3 +746,364 @@ describe('WalletService (part 1)', () => {
     });
   });
 });
+
+describe('WalletService (part 2)', () => {
+  const mockApiUrl = 'http://api.utfgo.test';
+
+  let service: WalletService;
+  let httpMock: HttpTestingController;
+
+  const activeUser: User = {
+    id: SIMULATED_USER_ID,
+    email: 'caio@alunos.utfpr.edu.br',
+    name: 'Caio',
+    role: 'PASSENGER',
+    status: 'ACTIVE',
+    createdAt: '2026-10-01T10:00:00.000Z',
+  };
+
+  const baseWallet: Wallet = {
+    id: 'wallet-1',
+    userId: SIMULATED_USER_ID,
+    tokenBalance: 10,
+    penaltyPoints: 0,
+    updatedAt: '2026-10-10T14:26:00.000Z',
+  };
+
+  const pendingOrder: Order = {
+    id: 'order-1',
+    userId: SIMULATED_USER_ID,
+    tokensCount: 5,
+    amountCents: 1000,
+    status: 'PENDING',
+    createdAt: '2026-11-18T11:00:00.000Z',
+  };
+
+  const pendingPix: Payment = {
+    id: 'pay-1',
+    orderId: 'order-1',
+    gatewayPaymentId: 'mp-pix-1',
+    method: 'PIX',
+    amountCents: 1000,
+    status: 'PENDING',
+    paidAt: null,
+    createdAt: '2026-11-18T11:00:10.000Z',
+  };
+
+  const paidAtIso = '2026-11-18T11:05:00.000Z';
+
+  /** Lets sequential `await firstValueFrom` continuations run before the next expectOne. */
+  function tick(): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, 0));
+  }
+
+  async function load(
+    orders: Order[] = [pendingOrder],
+    payments: Payment[] = [pendingPix],
+  ): Promise<void> {
+    const loadPromise = service.loadWalletData();
+    httpMock.expectOne(`${mockApiUrl}/users/${SIMULATED_USER_ID}`).flush(activeUser);
+    httpMock.expectOne(`${mockApiUrl}/wallets?userId=${SIMULATED_USER_ID}`).flush([baseWallet]);
+    httpMock.expectOne(`${mockApiUrl}/orders?userId=${SIMULATED_USER_ID}`).flush(orders);
+    httpMock.expectOne(`${mockApiUrl}/payments`).flush(payments);
+    await loadPromise;
+  }
+
+  /** Drives a full successful confirmation, asserting order and bodies of the 3 PATCH calls. */
+  async function confirmSuccessfully(payment: Payment): Promise<string[]> {
+    const bodies: string[] = [];
+    const promise = service.confirmPayment(payment.id);
+
+    const paymentReq = httpMock.expectOne({
+      method: 'PATCH',
+      url: `${mockApiUrl}/payments/${payment.id}`,
+    });
+    expect(paymentReq.request.body).toEqual({ status: 'PAID', paidAt: expect.any(String) });
+    bodies.push(JSON.stringify(paymentReq.request.body));
+    httpMock.expectNone({ method: 'PATCH', url: `${mockApiUrl}/orders/order-1` });
+    paymentReq.flush({ ...payment, status: 'PAID', paidAt: paidAtIso } satisfies Payment);
+    await tick();
+
+    const orderReq = httpMock.expectOne({ method: 'PATCH', url: `${mockApiUrl}/orders/order-1` });
+    expect(orderReq.request.body).toEqual({ status: 'COMPLETED' });
+    bodies.push(JSON.stringify(orderReq.request.body));
+    httpMock.expectNone({ method: 'PATCH', url: `${mockApiUrl}/wallets/wallet-1` });
+    orderReq.flush({ ...pendingOrder, status: 'COMPLETED' } satisfies Order);
+    await tick();
+
+    const walletReq = httpMock.expectOne({
+      method: 'PATCH',
+      url: `${mockApiUrl}/wallets/wallet-1`,
+    });
+    expect(walletReq.request.body).toEqual({ tokenBalance: 15, updatedAt: expect.any(String) });
+    bodies.push(JSON.stringify(walletReq.request.body));
+    walletReq.flush({ ...baseWallet, tokenBalance: 15 } satisfies Wallet);
+
+    expect(await promise).toBe(true);
+    return bodies;
+  }
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: WALLET_API_URL, useValue: mockApiUrl },
+      ],
+    });
+
+    service = TestBed.inject(WalletService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  describe('Pix confirmation (CA7)', () => {
+    it('sets Payment PAID with paidAt, Order COMPLETED and credits Wallet.tokenBalance in order', async () => {
+      await load();
+
+      await confirmSuccessfully(pendingPix);
+
+      expect(service.loading()).toBe(false);
+      expect(service.error()).toBeNull();
+      expect(service.wallet()?.tokenBalance).toBe(15);
+      expect(service.orders()[0].status).toBe('COMPLETED');
+      expect(service.payments()[0].status).toBe('PAID');
+      expect(service.payments()[0].paidAt).toBe(paidAtIso);
+    });
+  });
+
+  describe('credit card approval and RNF06 (CA8)', () => {
+    it('approves CREDIT_CARD payment without any card data in request bodies', async () => {
+      const pendingCard: Payment = { ...pendingPix, id: 'pay-card', method: 'CREDIT_CARD' };
+      await load([pendingOrder], [pendingCard]);
+
+      const bodies = await confirmSuccessfully(pendingCard);
+
+      for (const body of bodies) {
+        expect(body).not.toMatch(/4111|cvv|cardNumber|number|expiry|validade|holder/i);
+      }
+      expect(service.payments()[0].method).toBe('CREDIT_CARD');
+      expect(service.payments()[0].status).toBe('PAID');
+      expect(service.orders()[0].status).toBe('COMPLETED');
+      expect(service.wallet()?.tokenBalance).toBe(15);
+    });
+  });
+
+  describe('failure simulation (CA9)', () => {
+    it('marks Payment FAILED keeping Order PENDING and Wallet untouched', async () => {
+      await load();
+
+      const promise = service.failPayment('pay-1');
+      const req = httpMock.expectOne({ method: 'PATCH', url: `${mockApiUrl}/payments/pay-1` });
+      expect(req.request.body).toEqual({ status: 'FAILED' });
+      req.flush({ ...pendingPix, status: 'FAILED' } satisfies Payment);
+
+      expect(await promise).toBe(true);
+      expect(service.loading()).toBe(false);
+      expect(service.payments()[0].status).toBe('FAILED');
+      expect(service.orders()[0].status).toBe('PENDING');
+      expect(service.wallet()).toEqual(baseWallet);
+    });
+
+    it('rejects failure on a payment that is not PENDING without HTTP', async () => {
+      await load([pendingOrder], [{ ...pendingPix, status: 'PAID', paidAt: paidAtIso }]);
+
+      expect(await service.failPayment('pay-1')).toBe(false);
+      expect(service.error()).toBeTruthy();
+    });
+  });
+
+  describe('order cancellation (CA11)', () => {
+    it('cancels a PENDING Order, keeps balance and blocks later confirmation', async () => {
+      await load();
+
+      const promise = service.cancelOrder('order-1');
+      const req = httpMock.expectOne({ method: 'PATCH', url: `${mockApiUrl}/orders/order-1` });
+      expect(req.request.body).toEqual({ status: 'CANCELLED' });
+      req.flush({ ...pendingOrder, status: 'CANCELLED' } satisfies Order);
+
+      expect(await promise).toBe(true);
+      expect(service.orders()[0].status).toBe('CANCELLED');
+      expect(service.wallet()?.tokenBalance).toBe(10);
+
+      expect(await service.confirmPayment('pay-1')).toBe(false);
+      expect(service.error()).toBeTruthy();
+      expect(service.wallet()?.tokenBalance).toBe(10);
+    });
+
+    it('rejects cancelling an order that is not PENDING', async () => {
+      await load([{ ...pendingOrder, status: 'COMPLETED' }], [pendingPix]);
+
+      expect(await service.cancelOrder('order-1')).toBe(false);
+      expect(service.error()).toBeTruthy();
+    });
+  });
+
+  describe('idempotency (CA12)', () => {
+    it('ignores a second confirmation while the first is in progress and credits once', async () => {
+      await load();
+
+      const first = service.confirmPayment('pay-1');
+      expect(service.loading()).toBe(true);
+      const second = await service.confirmPayment('pay-1');
+      expect(second).toBe(false);
+
+      const paymentReqs = httpMock.match({ method: 'PATCH', url: `${mockApiUrl}/payments/pay-1` });
+      expect(paymentReqs).toHaveLength(1);
+      paymentReqs[0].flush({ ...pendingPix, status: 'PAID', paidAt: paidAtIso } satisfies Payment);
+      await tick();
+      httpMock
+        .expectOne({ method: 'PATCH', url: `${mockApiUrl}/orders/order-1` })
+        .flush({ ...pendingOrder, status: 'COMPLETED' } satisfies Order);
+      await tick();
+      httpMock
+        .expectOne({ method: 'PATCH', url: `${mockApiUrl}/wallets/wallet-1` })
+        .flush({ ...baseWallet, tokenBalance: 15 } satisfies Wallet);
+
+      expect(await first).toBe(true);
+      expect(service.wallet()?.tokenBalance).toBe(15);
+    });
+
+    it('rejects confirming an already COMPLETED Order or PAID Payment without HTTP', async () => {
+      await load(
+        [{ ...pendingOrder, status: 'COMPLETED' }],
+        [{ ...pendingPix, status: 'PAID', paidAt: paidAtIso }],
+      );
+
+      expect(await service.confirmPayment('pay-1')).toBe(false);
+      expect(service.error()).toBeTruthy();
+      expect(service.wallet()?.tokenBalance).toBe(10);
+    });
+
+    it('rejects confirming a PAID Payment even if Order is PENDING', async () => {
+      await load([pendingOrder], [{ ...pendingPix, status: 'PAID', paidAt: paidAtIso }]);
+
+      expect(await service.confirmPayment('pay-1')).toBe(false);
+      expect(service.wallet()?.tokenBalance).toBe(10);
+    });
+  });
+
+  describe('network failure on confirmation (CA14)', () => {
+    it('shows friendly connection error, keeps state and allows retry', async () => {
+      await load();
+      service.setDraftTokensCount(5);
+
+      const promise = service.confirmPayment('pay-1');
+      httpMock
+        .expectOne({ method: 'PATCH', url: `${mockApiUrl}/payments/pay-1` })
+        .error(new ProgressEvent('error'));
+
+      expect(await promise).toBe(false);
+      expect(service.loading()).toBe(false);
+      expect(service.error()).toContain('conectar');
+      expect(service.draftTokensCount()).toBe(5);
+      expect(service.payments()[0].status).toBe('PENDING');
+      expect(service.wallet()).toEqual(baseWallet);
+
+      const retry = service.confirmPayment('pay-1');
+      const retryReq = httpMock.expectOne({
+        method: 'PATCH',
+        url: `${mockApiUrl}/payments/pay-1`,
+      });
+      expect(service.loading()).toBe(true);
+      expect(service.error()).toBeNull();
+      retryReq.error(new ProgressEvent('error'));
+      expect(await retry).toBe(false);
+    });
+  });
+
+  describe('compensation on partial failure (CA15)', () => {
+    it('reverts Payment to PENDING when Order update fails and reports no success', async () => {
+      await load();
+
+      const promise = service.confirmPayment('pay-1');
+      httpMock
+        .expectOne({ method: 'PATCH', url: `${mockApiUrl}/payments/pay-1` })
+        .flush({ ...pendingPix, status: 'PAID', paidAt: paidAtIso } satisfies Payment);
+      await tick();
+      httpMock
+        .expectOne({ method: 'PATCH', url: `${mockApiUrl}/orders/order-1` })
+        .flush({ message: 'boom' }, { status: 500, statusText: 'Server Error' });
+      await tick();
+
+      const rollback = httpMock.expectOne({
+        method: 'PATCH',
+        url: `${mockApiUrl}/payments/pay-1`,
+      });
+      expect(rollback.request.body).toEqual({ status: 'PENDING', paidAt: null });
+      rollback.flush({ ...pendingPix } satisfies Payment);
+
+      expect(await promise).toBe(false);
+      expect(service.loading()).toBe(false);
+      expect(service.error()).toBeTruthy();
+      expect(service.payments()[0].status).toBe('PENDING');
+      expect(service.orders()[0].status).toBe('PENDING');
+      expect(service.wallet()).toEqual(baseWallet);
+    });
+
+    it('reverts Order then Payment when Wallet update fails', async () => {
+      await load();
+
+      const promise = service.confirmPayment('pay-1');
+      httpMock
+        .expectOne({ method: 'PATCH', url: `${mockApiUrl}/payments/pay-1` })
+        .flush({ ...pendingPix, status: 'PAID', paidAt: paidAtIso } satisfies Payment);
+      await tick();
+      httpMock
+        .expectOne({ method: 'PATCH', url: `${mockApiUrl}/orders/order-1` })
+        .flush({ ...pendingOrder, status: 'COMPLETED' } satisfies Order);
+      await tick();
+      httpMock
+        .expectOne({ method: 'PATCH', url: `${mockApiUrl}/wallets/wallet-1` })
+        .error(new ProgressEvent('error'));
+      await tick();
+
+      const orderRollback = httpMock.expectOne({
+        method: 'PATCH',
+        url: `${mockApiUrl}/orders/order-1`,
+      });
+      expect(orderRollback.request.body).toEqual({ status: 'PENDING' });
+      orderRollback.flush({ ...pendingOrder } satisfies Order);
+      await tick();
+
+      const paymentRollback = httpMock.expectOne({
+        method: 'PATCH',
+        url: `${mockApiUrl}/payments/pay-1`,
+      });
+      expect(paymentRollback.request.body).toEqual({ status: 'PENDING', paidAt: null });
+      paymentRollback.flush({ ...pendingPix } satisfies Payment);
+
+      expect(await promise).toBe(false);
+      expect(service.error()).toContain('conectar');
+      expect(service.payments()[0].status).toBe('PENDING');
+      expect(service.orders()[0].status).toBe('PENDING');
+      expect(service.wallet()?.tokenBalance).toBe(10);
+    });
+
+    it('never reports success when the compensation itself fails', async () => {
+      await load();
+
+      const promise = service.confirmPayment('pay-1');
+      httpMock
+        .expectOne({ method: 'PATCH', url: `${mockApiUrl}/payments/pay-1` })
+        .flush({ ...pendingPix, status: 'PAID', paidAt: paidAtIso } satisfies Payment);
+      await tick();
+      httpMock
+        .expectOne({ method: 'PATCH', url: `${mockApiUrl}/orders/order-1` })
+        .error(new ProgressEvent('error'));
+      await tick();
+      httpMock
+        .expectOne({ method: 'PATCH', url: `${mockApiUrl}/payments/pay-1` })
+        .error(new ProgressEvent('error'));
+
+      expect(await promise).toBe(false);
+      expect(service.loading()).toBe(false);
+      expect(service.error()).toContain('recarregue');
+      expect(service.orders()[0].status).toBe('PENDING');
+      expect(service.wallet()?.tokenBalance).toBe(10);
+    });
+  });
+});

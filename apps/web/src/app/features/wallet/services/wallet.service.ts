@@ -370,6 +370,222 @@ export class WalletService {
     }
   }
 
+  /**
+   * Simulated gateway webhook approval: Payment -> PAID, Order -> COMPLETED, Wallet.tokenBalance += tokensCount.
+   * Calls are sequential; on partial failure the already applied writes are compensated and success is never reported.
+   * Never receives or sends card data (RNF06).
+   */
+  async confirmPayment(paymentId: string): Promise<boolean> {
+    if (this._loading()) {
+      return false;
+    }
+
+    const blockMessage = this.accountBlockMessage();
+    if (blockMessage) {
+      this._error.set(blockMessage);
+      return false;
+    }
+
+    const payment = this._payments().find((item) => item.id === paymentId);
+    const order = payment ? this._orders().find((item) => item.id === payment.orderId) : undefined;
+    const wallet = this._wallet();
+
+    if (!payment || !order) {
+      this._error.set('Pagamento não encontrado para confirmação.');
+      return false;
+    }
+    if (order.status !== 'PENDING') {
+      this._error.set('Apenas pedidos pendentes aceitam confirmação de pagamento.');
+      return false;
+    }
+    if (payment.status !== 'PENDING') {
+      this._error.set('Apenas pagamentos pendentes podem ser confirmados.');
+      return false;
+    }
+    if (!wallet) {
+      this._error.set('Carteira não encontrada para este usuário.');
+      return false;
+    }
+
+    this._loading.set(true);
+    this._error.set(null);
+
+    let paidPayment: Payment | null = null;
+    let completedOrder: Order | null = null;
+
+    try {
+      // TODO #2: Replace these sequential json-server PATCH calls with POST /payments/webhook (HMAC SHA256).
+      paidPayment = await firstValueFrom(
+        this.http.patch<Payment>(`${this.apiUrl}/payments/${payment.id}`, {
+          status: 'PAID',
+          paidAt: new Date().toISOString(),
+        }),
+      );
+      completedOrder = await firstValueFrom(
+        this.http.patch<Order>(`${this.apiUrl}/orders/${order.id}`, { status: 'COMPLETED' }),
+      );
+      const updatedWallet = await firstValueFrom(
+        this.http.patch<Wallet>(`${this.apiUrl}/wallets/${wallet.id}`, {
+          tokenBalance: wallet.tokenBalance + order.tokensCount,
+          updatedAt: new Date().toISOString(),
+        }),
+      );
+
+      this._payments.update((current) =>
+        current.map((item) => (item.id === payment.id ? (paidPayment ?? item) : item)),
+      );
+      this._orders.update((current) =>
+        current.map((item) => (item.id === order.id ? (completedOrder ?? item) : item)),
+      );
+      this._wallet.set(updatedWallet);
+      this._activeOrderId.set(order.id);
+      this._activePaymentId.set(payment.id);
+
+      return true;
+    } catch (err: unknown) {
+      const compensated = await this.compensatePartialConfirmation(
+        payment.id,
+        order.id,
+        paidPayment !== null,
+        completedOrder !== null,
+      );
+      const baseMessage = this.formatNetworkError(
+        err,
+        'Não foi possível confirmar o pagamento. Tente novamente.',
+      );
+      this._error.set(
+        compensated
+          ? baseMessage
+          : `${baseMessage} Não foi possível desfazer as alterações parciais; recarregue a carteira antes de tentar novamente.`,
+      );
+      return false;
+    } finally {
+      this._loading.set(false);
+    }
+  }
+
+  /** Simulated failure/expiration: Payment -> FAILED, Order stays PENDING, Wallet.tokenBalance untouched. */
+  async failPayment(paymentId: string): Promise<boolean> {
+    if (this._loading()) {
+      return false;
+    }
+
+    const payment = this._payments().find((item) => item.id === paymentId);
+    const order = payment ? this._orders().find((item) => item.id === payment.orderId) : undefined;
+
+    if (!payment || !order) {
+      this._error.set('Pagamento não encontrado.');
+      return false;
+    }
+    if (order.status !== 'PENDING') {
+      this._error.set('Apenas pedidos pendentes podem ter o pagamento marcado como falho.');
+      return false;
+    }
+    if (payment.status !== 'PENDING') {
+      this._error.set('Apenas pagamentos pendentes podem falhar.');
+      return false;
+    }
+
+    this._loading.set(true);
+    this._error.set(null);
+
+    try {
+      // TODO #2: Replace simulated failure/expiration with the gateway webhook event.
+      const failedPayment = await firstValueFrom(
+        this.http.patch<Payment>(`${this.apiUrl}/payments/${payment.id}`, { status: 'FAILED' }),
+      );
+
+      this._payments.update((current) =>
+        current.map((item) => (item.id === payment.id ? failedPayment : item)),
+      );
+      this._activeOrderId.set(order.id);
+      this._activePaymentId.set(payment.id);
+
+      return true;
+    } catch (err: unknown) {
+      this._error.set(
+        this.formatNetworkError(err, 'Não foi possível registrar a falha do pagamento. Tente novamente.'),
+      );
+      return false;
+    } finally {
+      this._loading.set(false);
+    }
+  }
+
+  /** Cancels a PENDING Order; a CANCELLED Order no longer accepts payment confirmation. */
+  async cancelOrder(orderId: string): Promise<boolean> {
+    if (this._loading()) {
+      return false;
+    }
+
+    const order = this._orders().find((item) => item.id === orderId);
+    if (!order) {
+      this._error.set('Pedido não encontrado.');
+      return false;
+    }
+    if (order.status !== 'PENDING') {
+      this._error.set('Apenas pedidos pendentes podem ser cancelados.');
+      return false;
+    }
+
+    this._loading.set(true);
+    this._error.set(null);
+
+    try {
+      const cancelledOrder = await firstValueFrom(
+        this.http.patch<Order>(`${this.apiUrl}/orders/${order.id}`, { status: 'CANCELLED' }),
+      );
+
+      this._orders.update((current) =>
+        current.map((item) => (item.id === order.id ? cancelledOrder : item)),
+      );
+
+      return true;
+    } catch (err: unknown) {
+      this._error.set(
+        this.formatNetworkError(err, 'Não foi possível cancelar o pedido. Tente novamente.'),
+      );
+      return false;
+    } finally {
+      this._loading.set(false);
+    }
+  }
+
+  /** Reverts already applied writes (Order first, then Payment). Returns false if any revert fails. */
+  private async compensatePartialConfirmation(
+    paymentId: string,
+    orderId: string,
+    paymentWasPaid: boolean,
+    orderWasCompleted: boolean,
+  ): Promise<boolean> {
+    let compensated = true;
+
+    if (orderWasCompleted) {
+      try {
+        await firstValueFrom(
+          this.http.patch<Order>(`${this.apiUrl}/orders/${orderId}`, { status: 'PENDING' }),
+        );
+      } catch {
+        compensated = false;
+      }
+    }
+
+    if (paymentWasPaid) {
+      try {
+        await firstValueFrom(
+          this.http.patch<Payment>(`${this.apiUrl}/payments/${paymentId}`, {
+            status: 'PENDING',
+            paidAt: null,
+          }),
+        );
+      } catch {
+        compensated = false;
+      }
+    }
+
+    return compensated;
+  }
+
   private buildPendingPaymentPayload(
     orderId: string,
     method: PaymentMethod,
