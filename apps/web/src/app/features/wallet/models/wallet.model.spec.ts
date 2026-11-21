@@ -141,8 +141,8 @@ describe('wallet.model', () => {
       const apiUrl = TestBed.inject(WALLET_API_URL);
       const httpClient = TestBed.inject(HttpClient);
 
-      expect(environment.walletApiUrl).toBe('http://localhost:3000');
-      expect(apiUrl).toBe('http://localhost:3000');
+      expect(environment.walletApiUrl).toBe('/api');
+      expect(apiUrl).toBe('/api');
       expect(httpClient).toBeTruthy();
     });
   });

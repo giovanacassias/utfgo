@@ -27,9 +27,8 @@ export const routes: Routes = [
       },
       {
         path: 'cofrinho',
-        data: { title: 'Cofrinho' },
-        loadComponent: () =>
-          import('./features/home/placeholder.page').then((module) => module.PlaceholderPage),
+        loadChildren: () =>
+          import('./features/wallet/wallet.routes').then((module) => module.WALLET_ROUTES),
       },
       {
         path: 'pontos-de-encontro',
