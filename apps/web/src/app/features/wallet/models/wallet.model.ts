@@ -77,6 +77,18 @@ export function tokensToAmountCents(tokensCount: number): number {
   return tokensCount * TOKEN_UNIT_PRICE_CENTS;
 }
 
+const PIX_CODE_HEADER = '00020126580014br.gov.bcb.pix';
+const PIX_CODE_SUFFIX = '5802BR5909UTFGO PIX6304SIM0';
+
+/**
+ * Simulated Pix Copia e Cola code (not a valid EMV payload). Pure and deterministic:
+ * the same gatewayPaymentId and amount always produce the same code.
+ */
+export function buildPixCopyPasteCode(gatewayPaymentId: string, amountCents: number): string {
+  const amount = (amountCents / 100).toFixed(2);
+  return `${PIX_CODE_HEADER}0136${gatewayPaymentId}5204000053039865406${amount}${PIX_CODE_SUFFIX}`;
+}
+
 /** Formats integer cents into a BRL currency string using a regular ASCII space. */
 export function formatBrlFromCents(amountCents: number): string {
   if (!Number.isInteger(amountCents)) {

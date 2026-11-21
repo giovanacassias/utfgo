@@ -4,6 +4,7 @@ import { appConfig, WALLET_API_URL } from '../../../app.config';
 import { environment } from '../../../../environments/environment';
 import seedDb from '../../../../../../api/db.json';
 import {
+  buildPixCopyPasteCode,
   formatBrlFromCents,
   MAX_TOKENS_PER_ORDER,
   MIN_TOKENS_PER_ORDER,
@@ -59,6 +60,28 @@ describe('wallet.model', () => {
     it('rejects non-integer or non-finite cent values', () => {
       expect(() => formatBrlFromCents(12.5)).toThrow(RangeError);
       expect(() => formatBrlFromCents(Number.NaN)).toThrow(RangeError);
+    });
+  });
+
+  describe('buildPixCopyPasteCode', () => {
+    it('starts with the Pix header and includes the gateway id and the amount in reais', () => {
+      const code = buildPixCopyPasteCode('mp-pix-123', 1600);
+
+      expect(code.startsWith('00020126580014br.gov.bcb.pix')).toBe(true);
+      expect(code).toContain('mp-pix-123');
+      expect(code).toContain('16.00');
+      expect(code.endsWith('6304SIM0')).toBe(true);
+    });
+
+    it('is deterministic: same input gives the same code, different input differs', () => {
+      expect(buildPixCopyPasteCode('mp-pix-1', 1000)).toBe(buildPixCopyPasteCode('mp-pix-1', 1000));
+      expect(buildPixCopyPasteCode('mp-pix-1', 1000)).not.toBe(buildPixCopyPasteCode('mp-pix-2', 1000));
+      expect(buildPixCopyPasteCode('mp-pix-1', 1000)).not.toBe(buildPixCopyPasteCode('mp-pix-1', 1200));
+    });
+
+    it('formats cents with a decimal point (2.00, 0.50)', () => {
+      expect(buildPixCopyPasteCode('x', 200)).toContain('2.00');
+      expect(buildPixCopyPasteCode('x', 50)).toContain('0.50');
     });
   });
 

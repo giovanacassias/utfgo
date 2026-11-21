@@ -107,7 +107,7 @@ export class PaymentMethodPage implements OnInit {
           : await this.walletService.createOrderAndPayment(source.tokensCount, 'PIX');
 
       if (result !== null) {
-        // TODO #2: /cofrinho/pix is created in task 7.
+        // TODO #2: Pix page (/cofrinho/pix) is the task 7 page; replace with the NestJS-backed flow.
         void this.router.navigate(['/cofrinho/pix']);
       }
     } finally {

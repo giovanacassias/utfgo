@@ -21,4 +21,9 @@ export const WALLET_ROUTES: Routes = [
         (module) => module.PaymentMethodPage,
       ),
   },
+  {
+    path: 'pix',
+    loadComponent: () =>
+      import('./pages/pix-payment/pix-payment.page').then((module) => module.PixPaymentPage),
+  },
 ];
