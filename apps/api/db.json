@@ -1,0 +1,51 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "name": "Passageiro Ativo",
+      "email": "ativo@alunos.utfpr.edu.br",
+      "campus": "Curitiba",
+      "role": "PASSENGER",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "2",
+      "name": "Passageiro Suspenso",
+      "email": "suspenso@alunos.utfpr.edu.br",
+      "campus": "Curitiba",
+      "role": "PASSENGER",
+      "status": "SUSPENDED"
+    },
+    {
+      "id": "3",
+      "name": "Passageiro Banido",
+      "email": "banido@alunos.utfpr.edu.br",
+      "campus": "Curitiba",
+      "role": "PASSENGER",
+      "status": "BANNED"
+    }
+  ],
+  "wallets": [
+    {
+      "id": "1",
+      "userId": "1",
+      "tokenBalance": 0,
+      "penaltyPoints": 0,
+      "updatedAt": "2026-10-02T00:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "userId": "2",
+      "tokenBalance": 0,
+      "penaltyPoints": 0,
+      "updatedAt": "2026-10-02T00:00:00.000Z"
+    },
+    {
+      "id": "3",
+      "userId": "3",
+      "tokenBalance": 0,
+      "penaltyPoints": 0,
+      "updatedAt": "2026-10-02T00:00:00.000Z"
+    }
+  ]
+}

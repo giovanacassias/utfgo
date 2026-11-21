@@ -6,6 +6,7 @@
     "apps/*"
   ],
   "scripts": {
+    "api": "node apps/api/server.cjs",
     "start": "npm --workspace=apps/web run start",
     "build": "npm --workspace=apps/web run build",
     "test": "npm --workspace=apps/web run test -- --watch=false",
@@ -17,6 +18,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "eslint": "^9.20.0",
+    "json-server": "0.17.4",
     "prettier": "^3.8.1",
     "typescript-eslint": "^8.72.1"
   }
