@@ -110,6 +110,15 @@ Decisões de escopo da tela (Figma × spec): pacote selecionado destacado em `te
 ### Restrições de Conta e Caminhos Tristes de Rede
 - [ ] **CA13 — Conta suspensa ou banida (`SUSPENDED` / `BANNED`):** Dado que o usuário simulado no `db.json` possui `status` igual a `SUSPENDED` ou `BANNED`, quando acessa `/cofrinho` ou tenta iniciar/confirmar uma compra em `/cofrinho/comprar`, então a compra é bloqueada e uma mensagem clara informa que a conta está suspensa ou banida.
 - [ ] **CA14 — `json-server` indisponível ou erro de rede (Caminho Triste):** Dado que o `json-server` está offline ou retorna erro HTTP ao carregar a carteira, criar pedido ou confirmar pagamento, então a interface exibe mensagem amigável de falha de conexão com ação para tentar novamente, sem apagar os dados selecionados no fluxo e sem exibir sucesso falso.
+
+**Decisões da tela `/cofrinho/pagamento` (detalham CA6, CA10, CA12 e CA14):**
+- **Botão de confirmação:** com Pix selecionado, "Confirmar e gerar Pix"; com Cartão, "Continuar com cartão". Durante o envio (`loading`), o botão fica desabilitado e mostra "Gerando Pix...".
+- **Resultados do envio:** *sucesso* (Order e Payment gravados, só então navega para `/cofrinho/pix`); *servidor fora do ar ou erro HTTP* (mensagem do `WalletService` em `role="alert"`, a tela permanece, o resumo e o método escolhido são preservados, nenhum sucesso falso, botão "Tentar novamente" ao lado da mensagem); *clique duplo* (o segundo clique é ignorado pela interface e pelo `WalletService`: um único Order).
+- **Mensagens de erro:** as já existentes no `WalletService` ("Não foi possível conectar ao servidor da carteira. Verifique sua conexão e tente novamente." e "Não foi possível criar o pedido de pagamento. Tente novamente."); conta bloqueada usa `accountBlockMessage`.
+- **Precedência:** se existe pedido ativo `PENDING` (retentativa, CA10), ele vence o rascunho: o resumo usa os dados do pedido e a confirmação cria só um novo `Payment` para o mesmo `orderId`. Sem pedido ativo, usa o rascunho (`draftTokensCount`). Sem nenhum dos dois, a página redireciona para `/cofrinho/comprar`.
+- **Cartão:** navega para `/cofrinho/cartao` sem criar `Order` nem `Payment` (a criação é da tarefa 8).
+- **Visual:** sem a etiqueta "SELECIONADO" do Figma; a seta de voltar leva a `/cofrinho/comprar`; os ícones (ingresso, cartão, raio) são exportados do Figma para `apps/web/public/icons/`.
+- **Limitação conhecida:** a tela de compra (tarefa 5) não limpa o pedido ativo ao gravar um rascunho novo; um pedido ativo antigo pode ser reaproveitado por engano. Fica para uma Issue de manutenção, sem alterar a tarefa 5.
 - [ ] **CA15 — Consistência em falha parcial de múltiplas requisições (`RNF08`):** Dado que a simulação no `json-server` atualiza `Payment`, `Order` e `Wallet` em chamadas sequenciais, quando a gravação de `Payment` como `PAID` ocorre mas a atualização de `Order` ou `Wallet.tokenBalance` falha por erro de rede/HTTP, então o Service executa compensação/rollback do estado alterado (revertendo para `PENDING`/`FAILED` ou evitando reportar compra concluída) e apresenta erro recuperável ao usuário.
 
 ---
