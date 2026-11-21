@@ -360,6 +360,83 @@ describe('WalletService (part 1)', () => {
       expect(service.draftTokensCount()).toBeNull();
     });
 
+    describe('new draft vs active Order (a new purchase never reuses an old Order)', () => {
+      const oldOrder: Order = {
+        id: 'order-old',
+        userId: SIMULATED_USER_ID,
+        tokensCount: 8,
+        amountCents: 1600,
+        status: 'PENDING',
+        createdAt: '2026-11-18T11:00:00.000Z',
+      };
+
+      async function loadWithOldOrder(): Promise<void> {
+        const loadPromise = service.loadWalletData();
+        flushLoadWalletData(activeUser, [baseWallet], [oldOrder], []);
+        await loadPromise;
+      }
+
+      it('clears the active Order when a new valid draft is set', async () => {
+        await loadWithOldOrder();
+        service.selectActiveOrder('order-old');
+        expect(service.activeOrder()?.id).toBe('order-old');
+
+        service.setDraftTokensCount(20);
+
+        expect(service.activeOrderId()).toBeNull();
+        expect(service.activeOrder()).toBeNull();
+        expect(service.draftTokensCount()).toBe(20);
+      });
+
+      it('clears the Order created by createOrderAndPayment when a new draft is set', async () => {
+        await loadWithOldOrder();
+        const createPromise = service.createOrderAndPayment(8, 'PIX');
+        const orderReq = httpMock.expectOne({ method: 'POST', url: `${mockApiUrl}/orders` });
+        orderReq.flush({ ...oldOrder, id: 'order-created' });
+        await Promise.resolve();
+        httpMock
+          .expectOne({ method: 'POST', url: `${mockApiUrl}/payments` })
+          .flush({ id: 'pay-created', orderId: 'order-created' });
+        await createPromise;
+        expect(service.activeOrderId()).toBe('order-created');
+
+        service.setDraftTokensCount(20);
+
+        expect(service.activeOrderId()).toBeNull();
+      });
+
+      it('keeps the active Order when the draft is cleared or invalid', async () => {
+        await loadWithOldOrder();
+        service.selectActiveOrder('order-old');
+
+        service.setDraftTokensCount(null);
+        expect(service.activeOrderId()).toBe('order-old');
+
+        service.setDraftTokensCount(0);
+        expect(service.activeOrderId()).toBe('order-old');
+        expect(service.draftTokensCount()).toBeNull();
+      });
+
+      it('resuming an Order without a draft keeps it active', async () => {
+        await loadWithOldOrder();
+
+        service.selectActiveOrder('order-old');
+
+        expect(service.draftTokensCount()).toBeNull();
+        expect(service.activeOrder()?.id).toBe('order-old');
+      });
+
+      it('selecting an Order after the draft keeps both (retry wins)', async () => {
+        await loadWithOldOrder();
+
+        service.setDraftTokensCount(3);
+        service.selectActiveOrder('order-old');
+
+        expect(service.draftTokensCount()).toBe(3);
+        expect(service.activeOrder()?.id).toBe('order-old');
+      });
+    });
+
     it('creates PENDING Order and Payment with unique gatewayPaymentId without changing Wallet.tokenBalance', async () => {
       const loadPromise = service.loadWalletData();
       flushLoadWalletData(activeUser, [baseWallet], [], []);

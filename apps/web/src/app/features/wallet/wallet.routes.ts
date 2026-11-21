@@ -14,4 +14,11 @@ export const WALLET_ROUTES: Routes = [
     loadComponent: () =>
       import('./pages/buy-tokens/buy-tokens.page').then((module) => module.BuyTokensPage),
   },
+  {
+    path: 'pagamento',
+    loadComponent: () =>
+      import('./pages/payment-method/payment-method.page').then(
+        (module) => module.PaymentMethodPage,
+      ),
+  },
 ];

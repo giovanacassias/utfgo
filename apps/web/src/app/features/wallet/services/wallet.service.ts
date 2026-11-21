@@ -187,6 +187,9 @@ export class WalletService {
     }
 
     this._draftTokensCount.set(tokensCount);
+    // A new purchase must never reuse an Order from a previous one (retry is selectActiveOrder AFTER the draft).
+    this._activeOrderId.set(null);
+    this._activePaymentId.set(null);
   }
 
   selectActiveOrder(orderId: string | null): void {

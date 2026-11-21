@@ -1,0 +1,7 @@
+# Decisões — Tarefa 6, rodada 1
+
+| # | Apontamento (resumo) | Parecer | Decisão | Justificativa |
+| --- | --- | --- | --- | --- |
+| 1 | O pedido ativo vence o rascunho sempre (`payment-method.page.ts:38-50`): `WalletService._activeOrderId` nunca é limpo, então numa compra nova (ex.: 8 fichas gera Pix, volta e escolhe 20) a tela de pagamento mostra e cobra a quantidade antiga; correção: limpar o pedido ativo ao definir um rascunho novo | código (bloqueante) | aceito (opção A) | Correção na raiz, no `WalletService.setDraftTokensCount` (tarefa 2), com teste de regressão (rascunho novo depois de pedido ativo `PENDING` usa o rascunho). Altera código de tarefa já commitada, por decisão do dono: o erro cobraria a quantidade errada num fluxo comum. A limitação registrada na spec deixa de existir. |
+
+Sugestões não promovidas (candidatas a manutenção, sem correção nesta tarefa): destruição do componente durante o `await loadWalletData()` (o redirecionamento ainda dispara); falha no carregamento da carteira sem rascunho esconde o erro e "Tentar novamente" não recarrega a carteira; pacotes `role="radio"` sem setas de teclado; seta de voltar como glifo de texto em vez de ícone exportado do Figma (mesmo padrão da tarefa 5); teste dos ícones com acesso ao `fs` via `globalThis.process.getBuiltinModule`; pedido órfão se `POST /orders` der certo e `POST /payments` falhar (limitação do `WalletService`, fora do escopo).
