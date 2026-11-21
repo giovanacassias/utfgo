@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-// Remaining wallet routes (/comprar, /pagamento, /pix, /cartao, /aprovado, /falha) arrive in tasks 5-9.
+// Remaining wallet routes (/pagamento, /pix, /cartao, /aprovado, /falha) arrive in tasks 6-9.
 export const WALLET_ROUTES: Routes = [
   {
     path: '',
@@ -8,5 +8,10 @@ export const WALLET_ROUTES: Routes = [
       import('./pages/wallet-overview/wallet-overview.page').then(
         (module) => module.WalletOverviewPage,
       ),
+  },
+  {
+    path: 'comprar',
+    loadComponent: () =>
+      import('./pages/buy-tokens/buy-tokens.page').then((module) => module.BuyTokensPage),
   },
 ];
