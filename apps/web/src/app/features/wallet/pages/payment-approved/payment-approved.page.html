@@ -1,0 +1,173 @@
+@if (ready()) {
+  <section class="mx-auto flex max-w-6xl flex-col gap-6 lg:gap-8">
+    <a
+      routerLink="/cofrinho"
+      aria-label="Voltar"
+      class="inline-flex min-h-11 min-w-11 w-fit items-center justify-center text-title font-bold text-text-primary focus-visible:outline-2 focus-visible:outline-tertiary lg:hidden"
+    >
+      &larr;
+    </a>
+
+    <header class="flex flex-col items-center gap-3 text-center lg:hidden">
+      <img
+        src="payment-approved.png"
+        alt=""
+        aria-hidden="true"
+        width="400"
+        height="400"
+        class="size-44 object-contain"
+      />
+      <h1 data-title-mobile class="text-display font-extrabold text-text-primary">
+        <span class="block">Pagamento</span>{{ ' ' }}<span class="block text-success">aprovado</span>
+      </h1>
+      <p class="text-small text-text-secondary">
+        Deu tudo certo e suas fichas já foram creditadas na sua carteira.
+      </p>
+    </header>
+
+    <header class="hidden flex-col gap-1 lg:flex">
+      <p data-eyebrow class="text-caption font-semibold uppercase text-tertiary">
+        COMPRA CONCLUÍDA
+      </p>
+      <h1 data-title-desktop class="text-display font-extrabold text-text-primary">
+        Pagamento aprovado
+      </h1>
+      <p class="text-body text-text-secondary">As fichas já foram creditadas na sua carteira.</p>
+    </header>
+
+    @if (navigationFailed()) {
+      <div
+        data-navigation-error
+        role="alert"
+        class="flex flex-col gap-3 rounded-control bg-danger-surface p-4 text-small font-semibold text-danger sm:flex-row sm:items-center sm:justify-between"
+      >
+        <span>Não foi possível abrir a próxima tela. Volte ao Cofrinho para ver o seu pedido.</span>
+        <a
+          data-back-to-wallet
+          routerLink="/cofrinho"
+          class="inline-flex min-h-11 items-center justify-center rounded-control border border-danger px-4 text-small font-semibold text-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary"
+        >
+          Voltar ao Cofrinho
+        </a>
+      </div>
+    }
+
+    <div class="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
+      <div
+        class="hidden flex-col gap-4 lg:flex lg:rounded-card lg:border lg:border-border lg:bg-background lg:p-8"
+      >
+        <img
+          src="payment-approved.png"
+          alt=""
+          aria-hidden="true"
+          width="400"
+          height="400"
+          class="size-32 object-contain"
+        />
+        <span
+          data-pill
+          class="w-fit rounded-full bg-success px-3 py-1 text-caption font-semibold text-text-primary"
+        >
+          {{ pillLabel() }}
+        </span>
+        <h2 class="text-title font-extrabold text-text-primary">
+          Deu tudo certo. Suas fichas já estão disponíveis.
+        </h2>
+        <p class="text-small text-text-secondary">
+          Agora você pode buscar uma carona com a comunidade UTFPR.
+        </p>
+        <div class="flex flex-col gap-3">
+          <button
+            type="button"
+            data-find-ride="desktop"
+            disabled
+            class="flex min-h-12 w-full items-center justify-center gap-2 rounded-control bg-control-disabled px-4 text-small font-semibold text-text-secondary"
+          >
+            Buscar carona <span class="text-caption">Em breve</span>
+          </button>
+          <button
+            type="button"
+            data-go-wallet="desktop"
+            [disabled]="busy()"
+            class="min-h-12 w-full rounded-control border border-border bg-background px-4 text-small font-semibold text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:text-text-secondary"
+            (click)="goToWallet()"
+          >
+            Ir para o cofrinho
+          </button>
+        </div>
+      </div>
+
+      <div
+        class="overflow-hidden rounded-card bg-background lg:rounded-card lg:border lg:border-border"
+      >
+        <h2
+          class="bg-secondary px-4 py-3 text-caption font-semibold uppercase text-on-tertiary lg:bg-transparent lg:px-8 lg:pb-0 lg:pt-8 lg:text-text-secondary"
+        >
+          Resumo da compra
+        </h2>
+        <dl class="flex flex-col gap-1 p-4 lg:gap-3 lg:p-8">
+          <div class="flex items-center justify-between gap-4 lg:flex-col lg:items-start lg:gap-1">
+            <dt class="text-small text-text-secondary lg:text-caption">Quantidade adquirida</dt>
+            <dd data-summary-quantity class="text-small font-bold text-text-primary lg:text-body lg:font-semibold">
+              {{ quantityLabel() }}
+            </dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 lg:flex-col lg:items-start lg:gap-1">
+            <dt class="text-small text-text-secondary lg:text-caption">Valor unitário da ficha</dt>
+            <dd data-summary-unit class="text-small font-normal text-text-primary lg:text-body lg:font-semibold">
+              {{ unitPriceLabel }}
+            </dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 lg:flex-col lg:items-start lg:gap-1">
+            <dt data-summary-total-label class="text-small text-text-secondary lg:text-caption">
+              Total pago via {{ methodLabel() }}
+            </dt>
+            <dd data-summary-total class="text-small font-bold text-text-primary lg:text-body lg:font-semibold">
+              {{ totalLabel() }}
+            </dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 lg:flex-col lg:items-start lg:gap-1">
+            <dt class="text-small text-text-secondary lg:text-caption">Data e horário</dt>
+            <dd data-summary-date class="text-small font-normal text-text-primary lg:text-body lg:font-semibold">
+              {{ payment()?.paidAt | date: 'dd/MM/yyyy HH:mm' }}
+            </dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 lg:flex-col lg:items-start lg:gap-1">
+            <dt class="text-small text-text-secondary lg:text-caption">ID da Transação</dt>
+            <dd data-summary-transaction class="break-all text-right text-small font-bold text-text-primary lg:text-left lg:text-body lg:font-semibold">
+              {{ payment()?.gatewayPaymentId }}
+            </dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 lg:flex-col lg:items-start lg:gap-1">
+            <dt data-summary-balance-label class="text-small text-text-secondary lg:text-caption">
+              Novo saldo
+            </dt>
+            <dd data-summary-balance class="text-small font-bold text-text-primary lg:text-body lg:font-semibold">
+              {{ balanceLabel() }}
+            </dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="flex flex-col gap-3 lg:hidden">
+        <button
+          type="button"
+          data-find-ride="mobile"
+          disabled
+          class="flex min-h-12 w-full items-center justify-center gap-2 rounded-control bg-control-disabled px-4 text-small font-semibold text-text-secondary"
+        >
+          Buscar carona <span class="text-caption">Em breve</span>
+        </button>
+        <button
+          type="button"
+          data-go-wallet="mobile"
+          [disabled]="busy()"
+          class="min-h-12 w-full rounded-control bg-secondary px-4 text-small font-semibold text-on-tertiary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary disabled:bg-control-disabled disabled:text-text-secondary"
+          (click)="goToWallet()"
+        >
+          Ir para o cofrinho
+        </button>
+      </div>
+    </div>
+  </section>
+}

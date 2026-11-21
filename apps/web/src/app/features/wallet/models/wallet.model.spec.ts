@@ -6,6 +6,7 @@ import seedDb from '../../../../../../api/db.json';
 import {
   buildPixCopyPasteCode,
   formatBrlFromCents,
+  formatTokensLabel,
   MAX_TOKENS_PER_ORDER,
   MIN_TOKENS_PER_ORDER,
   Order,
@@ -60,6 +61,16 @@ describe('wallet.model', () => {
     it('rejects non-integer or non-finite cent values', () => {
       expect(() => formatBrlFromCents(12.5)).toThrow(RangeError);
       expect(() => formatBrlFromCents(Number.NaN)).toThrow(RangeError);
+    });
+  });
+
+  describe('formatTokensLabel', () => {
+    it('uses the singular for exactly one token and the plural otherwise', () => {
+      expect(formatTokensLabel(1)).toBe('1 ficha');
+      expect(formatTokensLabel(0)).toBe('0 fichas');
+      expect(formatTokensLabel(2)).toBe('2 fichas');
+      expect(formatTokensLabel(8)).toBe('8 fichas');
+      expect(formatTokensLabel(100)).toBe('100 fichas');
     });
   });
 

@@ -369,10 +369,8 @@ export class CardPaymentPage implements OnInit {
 
   private destination(action: Exclude<CardAction, 'create'>): string {
     switch (action) {
-      // TODO #2: /cofrinho/aprovado is created in task 9.
       case 'approve':
         return '/cofrinho/aprovado';
-      // TODO #2: /cofrinho/falha is created in task 9.
       case 'refuse':
         return '/cofrinho/falha';
       case 'cancel':

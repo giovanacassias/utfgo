@@ -169,10 +169,8 @@ export class PixPaymentPage implements OnInit {
 
   private destination(action: PixAction): string {
     switch (action) {
-      // TODO #2: /cofrinho/aprovado is created in task 9.
       case 'approve':
         return '/cofrinho/aprovado';
-      // TODO #2: /cofrinho/falha is created in task 9.
       case 'fail':
         return '/cofrinho/falha';
       case 'cancel':

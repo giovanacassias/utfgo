@@ -89,6 +89,11 @@ export function buildPixCopyPasteCode(gatewayPaymentId: string, amountCents: num
   return `${PIX_CODE_HEADER}0136${gatewayPaymentId}5204000053039865406${amount}${PIX_CODE_SUFFIX}`;
 }
 
+/** Formats a token count with the right singular/plural noun: "1 ficha", "8 fichas". */
+export function formatTokensLabel(count: number): string {
+  return `${count} ${count === 1 ? 'ficha' : 'fichas'}`;
+}
+
 /** Formats integer cents into a BRL currency string using a regular ASCII space. */
 export function formatBrlFromCents(amountCents: number): string {
   if (!Number.isInteger(amountCents)) {
