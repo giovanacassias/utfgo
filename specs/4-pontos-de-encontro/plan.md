@@ -33,7 +33,7 @@
 
 ## 2. Tarefas de Implementação (TDD)
 
-- [ ] **Tarefa 1 — Modelos de domínio e Serviço de Consulta do ViaCEP (`CepService`)**
+- [x] **Tarefa 1 — Modelos de domínio e Serviço de Consulta do ViaCEP (`CepService`)**
   - Cobre: `CA8`, `CA9`, `CA10`
   - Teste primeiro (`cep.service.spec.ts` com `HttpTestingController`): valida chamada `GET` para o ViaCEP ao receber CEP limpo de 8 dígitos, rejeição síncrona de formato inválido, tratamento do retorno `{ erro: "true" }` e tratamento resiliente de falha de rede/API offline.
   - Arquivos previstos: `apps/web/src/app/features/meeting-points/models/meeting-point.model.ts`, `apps/web/src/app/features/meeting-points/services/cep.service.ts`, `apps/web/src/app/features/meeting-points/services/cep.service.spec.ts`
