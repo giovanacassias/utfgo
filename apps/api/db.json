@@ -58,9 +58,9 @@
     {
       "id": "wallet-1",
       "userId": "user-1",
-      "tokenBalance": 10,
+      "tokenBalance": 15,
       "penaltyPoints": 0,
-      "updatedAt": "2026-10-10T14:26:00.000Z"
+      "updatedAt": "2026-11-22T18:30:04.669Z"
     }
   ],
   "orders": [
@@ -71,6 +71,22 @@
       "amountCents": 2000,
       "status": "COMPLETED",
       "createdAt": "2026-10-10T14:25:00.000Z"
+    },
+    {
+      "userId": "user-1",
+      "tokensCount": 1,
+      "amountCents": 200,
+      "status": "CANCELLED",
+      "createdAt": "2026-11-22T18:29:30.989Z",
+      "id": "SxZH5Pj"
+    },
+    {
+      "userId": "user-1",
+      "tokensCount": 5,
+      "amountCents": 1000,
+      "status": "COMPLETED",
+      "createdAt": "2026-11-22T18:29:57.138Z",
+      "id": "QHfG20N"
     }
   ],
   "payments": [
@@ -83,6 +99,26 @@
       "status": "PAID",
       "paidAt": "2026-10-10T14:26:00.000Z",
       "createdAt": "2026-10-10T14:25:10.000Z"
+    },
+    {
+      "orderId": "SxZH5Pj",
+      "gatewayPaymentId": "mp-pix-1795372171020-1-eb20abfc",
+      "method": "PIX",
+      "amountCents": 200,
+      "status": "FAILED",
+      "paidAt": null,
+      "createdAt": "2026-11-22T18:29:31.020Z",
+      "id": "WMqaubK"
+    },
+    {
+      "orderId": "QHfG20N",
+      "gatewayPaymentId": "mp-pix-1795372197175-2-b94741e2",
+      "method": "PIX",
+      "amountCents": 1000,
+      "status": "PAID",
+      "paidAt": "2026-11-22T18:30:04.600Z",
+      "createdAt": "2026-11-22T18:29:57.175Z",
+      "id": "9RBEUTf"
     }
   ]
 }
