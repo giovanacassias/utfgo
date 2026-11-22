@@ -6,6 +6,26 @@ function createServer(databasePath = join(__dirname, 'db.json')) {
   const router = jsonServer.router(databasePath);
 
   server.use(jsonServer.bodyParser);
+  // TODO #2: Replace this json-server mock guard with the NestJS MeetingPoint uniqueness rule.
+  server.post('/meeting-points', (request, response) => {
+    const body = request.body ?? {};
+    const normalize = (value) => (typeof value === 'string' ? value.trim().toLowerCase() : '');
+    const name = normalize(body.name);
+    const address = normalize(body.address);
+    const points = router.db.get('meeting-points').value() ?? [];
+    const duplicate = points.some(
+      (point) => normalize(point.name) === name && normalize(point.address) === address,
+    );
+
+    if (duplicate) {
+      return response.status(409).json({
+        message: 'Já existe um ponto de encontro com este nome neste endereço.',
+      });
+    }
+    const point = router.db.get('meeting-points').insert(body).value();
+    router.db.write();
+    return response.status(201).json(point);
+  });
   server.post('/auth/otp/send', (request, response) => {
     console.log('OTP simulado:', request.body.code);
     response.status(204).end();
