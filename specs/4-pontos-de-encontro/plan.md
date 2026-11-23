@@ -73,3 +73,8 @@
 ## 3. Critérios sem tarefa
 
 *(Nenhum — todos os critérios `CA1` a `CA14` estão estritamente cobertos pelas 7 tarefas acima.)*
+
+## 4. Ajustes da auditoria
+
+- [x] **Tarefa 8 — Restringir a gestão ao administrador (CA15).** Testar o atalho e as rotas por perfil, além de escritas na API com e sem uma sessão administrativa emitida pelo mock.
+- [x] **Tarefa 9 — Validar coordenadas e endereço (CA11 e CA12).** Testar limites no formulário e na API, duplicidade com acentos e espaços e nomes distintos no mesmo endereço.

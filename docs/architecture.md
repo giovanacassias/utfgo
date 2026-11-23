@@ -131,6 +131,8 @@
 - **Roteamento Modular:** O arquivo de rotas principal (`app.routes.ts`) apenas mapeia caminhos para as rotas das features com `loadChildren` ou `loadComponent`.
 - **Tema visual:** `apps/web/.postcssrc.json` habilita `@tailwindcss/postcss`; `apps/web/src/styles.css` importa Tailwind CSS v4 e declara a paleta, tipografia, espaçamento, raios e breakpoints semânticos no bloco `@theme`; templates usam as classes geradas por esses tokens.
 - **Mock local da US01:** `apps/api/server.cjs` serve `apps/api/db.json` na porta `3000`, garante unicidade de e-mail e criação idempotente de carteira no processo do mock; o proxy de desenvolvimento `apps/web/proxy.conf.json` remove o prefixo `/api` e encaminha as chamadas do frontend.
+- **Mock local da US04:** `GET /meeting-points` e `GET /meeting-points/:id` consultam os pontos oficiais. `POST /meeting-points` e `PATCH /meeting-points/:id` exigem uma sessão de administrador ativo emitida pelo mock. O código de login da conta de teste `admin@alunos.utfpr.edu.br` aparece no terminal do backend. A sessão administrativa expira em oito horas e é descartada quando o processo reinicia. O cadastro aplica unicidade por nome e endereço normalizados e valida os limites de latitude e longitude. A alteração de status atualiza apenas `isActive`.
+- **ViaCEP (US04):** o frontend consulta a API pública pelo CEP para preencher logradouro, bairro e cidade/UF. O administrador informa as coordenadas do embarque manualmente.
 
 ---
 

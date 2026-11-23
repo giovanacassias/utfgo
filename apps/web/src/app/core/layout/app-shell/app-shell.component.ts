@@ -40,8 +40,13 @@ export class AppShellComponent {
   private readonly drawerCloseButton =
     viewChild<ElementRef<HTMLButtonElement>>('drawerCloseButton');
 
-  readonly navigationItems = navigationItems;
   readonly session = this.authService.session;
+  readonly navigationItems = computed(() => {
+    const user = this.session()?.user;
+    return user?.role === 'ADMIN' && user.status === 'ACTIVE'
+      ? navigationItems
+      : navigationItems.filter((item) => item.path !== '/pontos-de-encontro');
+  });
   readonly drawerOpen = signal(false);
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -53,10 +58,10 @@ export class AppShellComponent {
   );
   readonly activeNavigationItem = computed(
     () =>
-      this.navigationItems.find((item) => {
+      this.navigationItems().find((item) => {
         const url = this.currentUrl();
         return url === item.path || url.startsWith(`${item.path}/`);
-      }) ?? this.navigationItems[0],
+      }) ?? this.navigationItems()[0],
   );
 
   constructor() {

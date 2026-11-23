@@ -1,6 +1,14 @@
 {
   "users": [
     {
+      "id": "admin-1",
+      "name": "Administrador de Teste",
+      "email": "admin@alunos.utfpr.edu.br",
+      "campus": "Curitiba",
+      "role": "ADMIN",
+      "status": "ACTIVE"
+    },
+    {
       "id": "1",
       "name": "Passageiro Ativo",
       "email": "ativo@alunos.utfpr.edu.br",
@@ -34,6 +42,13 @@
     }
   ],
   "wallets": [
+    {
+      "id": "wallet-admin-1",
+      "userId": "admin-1",
+      "tokenBalance": 0,
+      "penaltyPoints": 0,
+      "updatedAt": "2026-11-22T00:00:00.000Z"
+    },
     {
       "id": "1",
       "userId": "1",

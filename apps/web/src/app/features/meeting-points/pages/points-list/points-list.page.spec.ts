@@ -39,7 +39,7 @@ describe('PointsListPage', () => {
         name: 'Ana UTFPR',
         email: 'ana@alunos.utfpr.edu.br',
         campus: 'Curitiba',
-        role: 'PASSENGER',
+        role: 'ADMIN',
         status: 'ACTIVE',
       },
     });

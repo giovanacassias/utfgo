@@ -9,3 +9,10 @@ export const authGuard: CanActivateFn = () => {
 
   return authService.session() ? true : router.parseUrl('/entrar');
 };
+
+export const adminGuard: CanActivateFn = () => {
+  const session = inject(AuthService).session();
+  return session?.user.role === 'ADMIN' && session.user.status === 'ACTIVE'
+    ? true
+    : inject(Router).parseUrl(session ? '/inicio' : '/entrar');
+};

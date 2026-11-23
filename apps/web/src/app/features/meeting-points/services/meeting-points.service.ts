@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { AuthService } from '../../../core/auth/auth.service';
 import { API_URL } from '../../../core/api-url.token';
 import { CreateMeetingPointPayload, MeetingPoint } from '../models/meeting-point.model';
 
@@ -18,6 +19,7 @@ const NETWORK_ERROR =
 @Injectable({ providedIn: 'root' })
 export class MeetingPointsService {
   private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
   // TODO #2: Replace the shared json-server base URL and REST calls with NestJS meeting-points endpoints.
   private readonly apiUrl = inject(API_URL).replace(/\/+$/, '');
 
@@ -77,7 +79,7 @@ export class MeetingPointsService {
         this.http.post<MeetingPoint>(`${this.apiUrl}/meeting-points`, {
           ...payload,
           isActive: true,
-        }),
+        }, this.writeOptions()),
       );
 
       this._points.update((current) => [created, ...current]);
@@ -103,7 +105,7 @@ export class MeetingPointsService {
 
       // TODO #2: Replace json-server PATCH with the NestJS meeting-points status endpoint.
       const updated = await firstValueFrom(
-        this.http.patch<MeetingPoint>(url, { isActive: !currentPoint.isActive }),
+        this.http.patch<MeetingPoint>(url, { isActive: !currentPoint.isActive }, this.writeOptions()),
       );
 
       this._points.update((current) => {
@@ -138,11 +140,20 @@ export class MeetingPointsService {
   }
 
   private normalize(value: string): string {
-    return value.trim().toLowerCase();
+    return value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim()
+      .replace(/\s+/g, ' ').replace(/\s*([,/—])\s*/g, '$1');
+  }
+
+  private writeOptions(): { headers?: Record<string, string> } {
+    const token = this.auth.session()?.token;
+    return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
   }
 
   private formatError(err: unknown, fallbackMessage: string): string {
     if (err instanceof HttpErrorResponse) {
+      if (err.status === 401 || err.status === 403) {
+        return 'Entre novamente com uma conta de administrador para gerenciar pontos de encontro.';
+      }
       if (err.status === 0) {
         return NETWORK_ERROR;
       }

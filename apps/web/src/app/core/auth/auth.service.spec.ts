@@ -268,6 +268,25 @@ describe('AuthService — confirmação de OTP e sessão', () => {
     expect(JSON.parse(localStorage.getItem('utfgo.auth.session') ?? 'null')).toEqual(session);
   });
 
+  it('uses the server to verify the administrator OTP and stores the issued token', async () => {
+    const admin: User = { ...activeUser, role: 'ADMIN' };
+    const login = firstValueFrom(service.sendLoginOtp(admin.email));
+    http.expectOne('/api/users?email=ana%40alunos.utfpr.edu.br').flush([admin]);
+    http.expectOne('/api/auth/otp/send').flush({ serverVerified: true });
+    await login;
+
+    const confirmation = firstValueFrom(service.confirmOtp('123456'));
+    const verify = http.expectOne('/api/auth/otp/verify');
+    expect(verify.request.body).toEqual({ email: admin.email, code: '123456' });
+    verify.flush({
+      user: admin,
+      wallet: { id: 'wallet-1', userId: admin.id, tokenBalance: 0, penaltyPoints: 0, updatedAt: '2026-11-22' },
+      token: 'server-issued-admin-token',
+    });
+    expect((await confirmation).token).toBe('server-issued-admin-token');
+    expect(service.session()?.user.role).toBe('ADMIN');
+  });
+
   it('confirms a valid registration OTP by creating the pending user and session', async () => {
     const registration = {
       name: 'Bia UTFPR',

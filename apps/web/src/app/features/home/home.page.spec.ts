@@ -43,6 +43,22 @@ describe('Meeting point navigation', () => {
     expect(router.url).toBe('/entrar');
   });
 
+  it.each(['PASSENGER', 'DRIVER'] as const)('blocks management for %s', async (role) => {
+    session.set({
+      token: 'session-token',
+      user: {
+        id: 'user-1', name: 'Ana', email: 'ana@alunos.utfpr.edu.br',
+        campus: 'Curitiba', role, status: 'ACTIVE',
+      },
+    });
+    const harness = await RouterTestingHarness.create('/inicio');
+    expect(harness.routeNativeElement?.querySelector('a[href="/pontos-de-encontro"]')).toBeNull();
+    for (const path of ['/pontos-de-encontro', '/pontos-de-encontro/novo', '/pontos-de-encontro/point-42']) {
+      await harness.navigateByUrl(path);
+      expect(router.url).toBe('/inicio');
+    }
+  });
+
   it('opens meeting point management in the shell when the Home shortcut is clicked', async () => {
     session.set({
       token: 'session-token',
@@ -51,7 +67,7 @@ describe('Meeting point navigation', () => {
         name: 'Ana UTFPR',
         email: 'ana@alunos.utfpr.edu.br',
         campus: 'Curitiba',
-        role: 'PASSENGER',
+        role: 'ADMIN',
         status: 'ACTIVE',
       },
     });

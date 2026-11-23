@@ -120,7 +120,6 @@ describe('AppShellComponent', () => {
       'Início',
       'Caronas',
       'Cofrinho',
-      'Pontos de encontro',
       'Meu histórico',
       'Meu perfil',
     ]);
@@ -157,7 +156,7 @@ describe('AppShellComponent', () => {
     it('applies the purple hover state with light text to every link', () => {
       const links = Array.from(sidebar.querySelectorAll('nav a'));
 
-      expect(links.length).toBe(6);
+      expect(links.length).toBe(5);
       for (const link of links) {
         expect(link.classList.contains('hover:bg-tertiary')).toBe(true);
         expect(link.classList.contains('hover:text-on-tertiary')).toBe(true);
@@ -168,7 +167,7 @@ describe('AppShellComponent', () => {
     it('keeps a visible keyboard focus ring offset from the purple background on every link', () => {
       const links = Array.from(sidebar.querySelectorAll('nav a'));
 
-      expect(links.length).toBe(6);
+      expect(links.length).toBe(5);
       for (const link of links) {
         expect(link.classList.contains('focus-visible:outline-2')).toBe(true);
         expect(link.classList.contains('focus-visible:outline-tertiary')).toBe(true);
@@ -400,7 +399,7 @@ describe('AppShellComponent', () => {
       );
     });
 
-    it('opens from the mobile header and displays the six links and footer', async () => {
+    it('opens from the mobile header and displays the available links and footer', async () => {
       expect(toggle?.textContent?.trim()).toBe('☰');
       expect(toggle.classList.contains('lg:hidden')).toBe(true);
       expect(toggle.getAttribute('aria-expanded')).toBe('false');
@@ -413,7 +412,6 @@ describe('AppShellComponent', () => {
         ['Início', '/inicio'],
         ['Caronas', '/caronas'],
         ['Cofrinho', '/cofrinho'],
-        ['Pontos de encontro', '/pontos-de-encontro'],
         ['Meu histórico', '/meu-historico'],
         ['Meu perfil', '/meu-perfil'],
       ]);

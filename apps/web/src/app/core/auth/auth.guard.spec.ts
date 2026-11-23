@@ -87,7 +87,7 @@ describe('authGuard and protected routing', () => {
         name: 'Ana',
         email: 'ana@utfpr.edu.br',
         campus: 'Curitiba',
-        role: 'PASSENGER',
+        role: path === '/pontos-de-encontro' ? 'ADMIN' : 'PASSENGER',
         status: 'ACTIVE',
       },
     });

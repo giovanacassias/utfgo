@@ -25,6 +25,7 @@ export interface OtpChallenge {
   expiresAt: string;
   purpose: OtpPurpose;
   registration?: RegistrationData;
+  serverVerified?: boolean;
 }
 
 export interface AuthSession {
