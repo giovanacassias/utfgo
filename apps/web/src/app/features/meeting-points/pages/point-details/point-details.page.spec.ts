@@ -2,6 +2,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { vi } from 'vitest';
 
 import { appConfig } from '../../../../app.config';
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -61,10 +62,19 @@ describe('PointDetailsPage', () => {
     return harness.routeNativeElement!.querySelector<HTMLElement>('app-point-details')!;
   }
 
+  async function startDetailsNavigation(id: string) {
+    const navigation = harness.navigateByUrl(`/pontos-de-encontro/${id}`);
+    const request = await vi.waitFor(() =>
+      http.expectOne({ method: 'GET', url: `/api/meeting-points/${id}` }),
+    );
+    return { navigation, request };
+  }
+
   async function openLibrary(): Promise<HTMLElement> {
-    await harness.navigateByUrl('/pontos-de-encontro/library');
-    http.expectOne({ method: 'GET', url: '/api/meeting-points' }).flush([gate, library]);
-    await harness.fixture.whenStable();
+    const { navigation, request } = await startDetailsNavigation('library');
+    expect(harness.routeNativeElement?.querySelector('app-point-details')).toBeFalsy();
+    request.flush(library);
+    await navigation;
     return detailsView();
   }
 
@@ -75,9 +85,31 @@ describe('PointDetailsPage', () => {
     expect(libraryDetails.textContent).toContain(library.address);
     expect(libraryDetails.textContent).not.toContain(gate.name);
 
-    await harness.navigateByUrl('/pontos-de-encontro/gate');
+    const { navigation, request } = await startDetailsNavigation('gate');
+    request.flush(gate);
+    await navigation;
     expect(detailsView().querySelector('h1')?.textContent).toContain(gate.name);
     expect(detailsView().textContent).toContain(gate.address);
+  });
+
+  it('shows the not-found state when the resolver receives a 404', async () => {
+    const { navigation, request } = await startDetailsNavigation('missing');
+    request.flush(null, { status: 404, statusText: 'Not Found' });
+    await navigation;
+
+    expect(detailsView().textContent).toContain('Ponto de encontro não encontrado.');
+    expect(detailsView().querySelector('[role="alert"]')).toBeNull();
+  });
+
+  it('shows a network error separately from the not-found state', async () => {
+    const { navigation, request } = await startDetailsNavigation('library');
+    request.error(new ProgressEvent('error'));
+    await navigation;
+
+    expect(detailsView().querySelector('[role="alert"]')?.textContent).toContain(
+      'Não foi possível conectar',
+    );
+    expect(detailsView().textContent).not.toContain('Ponto de encontro não encontrado.');
   });
 
   it('patches the point in each direction and confirms the resulting status', async () => {
