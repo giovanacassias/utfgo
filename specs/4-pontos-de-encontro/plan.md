@@ -58,7 +58,7 @@
   - Teste primeiro (`points-list.page.spec.ts`): prova iteração com `@for (point of points(); track point.id)`, integração com `<app-point-search>`, filtragem reativa dinâmica e presença de `@defer` com placeholder de carregamento.
   - Arquivos previstos: `apps/web/src/app/features/meeting-points/pages/points-list/points-list.page.ts`, `apps/web/src/app/features/meeting-points/pages/points-list/points-list.page.spec.ts`, `apps/web/src/app/features/meeting-points/meeting-points.routes.ts`
 
-- [ ] **Tarefa 6 — Formulário Reativo de Cadastro com Autopreenchimento de CEP (`PointCreatePage`)**
+- [x] **Tarefa 6 — Formulário Reativo de Cadastro com Autopreenchimento de CEP (`PointCreatePage`)**
   - Cobre: `CA8`, `CA9`, `CA10`, `CA11`, `CA12`, `CA13`
   - Teste primeiro (`point-create.page.spec.ts`): prova que ao digitar CEP válido os campos de rua/bairro/cidade são preenchidos; valida mensagens de erro para CEP não encontrado/falha de rede; valida botão desabilitado com campos obrigatórios vazios; e prova redirecionamento para a lista após criação com sucesso.
   - Arquivos previstos: `apps/web/src/app/features/meeting-points/pages/point-create/point-create.page.ts`, `apps/web/src/app/features/meeting-points/pages/point-create/point-create.page.spec.ts`

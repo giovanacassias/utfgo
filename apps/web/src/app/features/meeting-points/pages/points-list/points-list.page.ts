@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { PointCardComponent } from '../../components/point-card/point-card.component';
 import { PointSearchComponent } from '../../components/point-search/point-search.component';
@@ -19,6 +19,12 @@ import { MeetingPointsService } from '../../services/meeting-points.service';
           Novo ponto de encontro
         </a>
       </header>
+
+      @if (pointCreated) {
+        <p role="status" class="text-small text-success">
+          Ponto de encontro cadastrado com sucesso.
+        </p>
+      }
 
       <app-point-search [(searchTerm)]="search" [(onlyActive)]="showActive" />
 
@@ -64,6 +70,8 @@ import { MeetingPointsService } from '../../services/meeting-points.service';
 })
 export class PointsListPage implements OnInit {
   protected readonly meetingPoints = inject(MeetingPointsService);
+  protected readonly pointCreated =
+    inject(Router).currentNavigation()?.extras.info === 'meeting-point-created';
 
   protected readonly search = signal('');
   protected readonly showActive = signal(false);
