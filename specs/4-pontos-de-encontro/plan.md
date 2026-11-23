@@ -63,7 +63,7 @@
   - Teste primeiro (`point-create.page.spec.ts`): prova que ao digitar CEP válido os campos de rua/bairro/cidade são preenchidos; valida mensagens de erro para CEP não encontrado/falha de rede; valida botão desabilitado com campos obrigatórios vazios; e prova redirecionamento para a lista após criação com sucesso.
   - Arquivos previstos: `apps/web/src/app/features/meeting-points/pages/point-create/point-create.page.ts`, `apps/web/src/app/features/meeting-points/pages/point-create/point-create.page.spec.ts`
 
-- [ ] **Tarefa 7 — Tela de Detalhes e Ações com Rota Dinâmica `:id` (`PointDetailsPage`)**
+- [x] **Tarefa 7 — Tela de Detalhes e Ações com Rota Dinâmica `:id` (`PointDetailsPage`)**
   - Cobre: `CA1`, `CA14`
   - Teste primeiro (`point-details.page.spec.ts`): prova que o componente recebe `id = input.required<string>()` da URL, carrega o ponto correspondente, e permite alternar o status (*Soft Delete*) com confirmação visual e feedback.
   - Arquivos previstos: `apps/web/src/app/features/meeting-points/pages/point-details/point-details.page.ts`, `apps/web/src/app/features/meeting-points/pages/point-details/point-details.page.spec.ts`

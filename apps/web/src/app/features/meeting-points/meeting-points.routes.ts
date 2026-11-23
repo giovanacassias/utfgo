@@ -12,4 +12,9 @@ export const MEETING_POINTS_ROUTES: Routes = [
     loadComponent: () =>
       import('./pages/point-create/point-create.page').then((module) => module.PointCreatePage),
   },
+  {
+    path: ':id',
+    loadComponent: () =>
+      import('./pages/point-details/point-details.page').then((module) => module.PointDetailsPage),
+  },
 ];
