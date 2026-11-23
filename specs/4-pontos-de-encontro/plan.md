@@ -38,7 +38,7 @@
   - Teste primeiro (`cep.service.spec.ts` com `HttpTestingController`): valida chamada `GET` para o ViaCEP ao receber CEP limpo de 8 dígitos, rejeição síncrona de formato inválido, tratamento do retorno `{ erro: "true" }` e tratamento resiliente de falha de rede/API offline.
   - Arquivos previstos: `apps/web/src/app/features/meeting-points/models/meeting-point.model.ts`, `apps/web/src/app/features/meeting-points/services/cep.service.ts`, `apps/web/src/app/features/meeting-points/services/cep.service.spec.ts`
 
-- [ ] **Tarefa 2 — Serviço de Pontos de Encontro (`MeetingPointsService`) e Seed no Mock**
+- [x] **Tarefa 2 — Serviço de Pontos de Encontro (`MeetingPointsService`) e Seed no Mock**
   - Cobre: `CA11`, `CA12`, `CA14`
   - Teste primeiro (`meeting-points.service.spec.ts`): prova carregamento de pontos, criação com `isActive = true`, bloqueio por duplicidade de nome no mesmo endereço, e alternância de status (*Soft Delete*) via `toggleStatus(id)` atualizando o estado reativo sem exclusão física.
   - Arquivos previstos: `apps/api/db.json`, `apps/web/src/app/features/meeting-points/services/meeting-points.service.ts`, `apps/web/src/app/features/meeting-points/services/meeting-points.service.spec.ts`

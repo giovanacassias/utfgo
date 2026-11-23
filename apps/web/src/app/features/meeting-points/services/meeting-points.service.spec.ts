@@ -69,15 +69,6 @@ describe('MeetingPointsService (CA11, CA12, CA14)', () => {
     await loadPromise;
   }
 
-  it('uses the generic API_URL token and keeps WALLET_API_URL provided in appConfig', () => {
-    expect(appConfig.providers).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ provide: API_URL }),
-        expect.objectContaining({ provide: WALLET_API_URL }),
-      ]),
-    );
-  });
-
   it('starts with empty/default readonly signals', () => {
     expect(service.points()).toEqual([]);
     expect(service.isLoading()).toBe(false);
@@ -267,6 +258,66 @@ describe('MeetingPointsService (CA11, CA12, CA14)', () => {
       httpTesting.expectNone((req) => req.method === 'DELETE');
     });
 
+    it('loads a point by id before toggling it when the list is empty', async () => {
+      const url = `${mockApiUrl}/meeting-points/${activePoint.id}`;
+      const pending = service.toggleStatus(activePoint.id);
+
+      httpTesting.expectOne({ method: 'GET', url }).flush(activePoint);
+      await Promise.resolve();
+      const patch = httpTesting.expectOne({ method: 'PATCH', url });
+      expect(patch.request.body).toEqual({ isActive: false });
+      const updated = { ...activePoint, isActive: false };
+      patch.flush(updated);
+
+      expect(await pending).toEqual(updated);
+      expect(service.points()).toEqual([updated]);
+    });
+
+    it('keeps loading until status changes for both points finish', async () => {
+      const activeUrl = `${mockApiUrl}/meeting-points/${activePoint.id}`;
+      const inactiveUrl = `${mockApiUrl}/meeting-points/${inactivePoint.id}`;
+      const first = service.toggleStatus(activePoint.id);
+      const second = service.toggleStatus(inactivePoint.id);
+
+      httpTesting.expectOne({ method: 'GET', url: activeUrl }).flush(activePoint);
+      httpTesting.expectOne({ method: 'GET', url: inactiveUrl }).flush(inactivePoint);
+      await Promise.resolve();
+
+      httpTesting.expectOne({ method: 'PATCH', url: activeUrl })
+        .flush({ ...activePoint, isActive: false });
+      await first;
+      expect(service.loading.toggle()).toBe(true);
+
+      httpTesting.expectOne({ method: 'PATCH', url: inactiveUrl })
+        .flush({ ...inactivePoint, isActive: true });
+      await second;
+      expect(service.loading.toggle()).toBe(false);
+    });
+
+    it('shows a not-found message when the point id does not exist', async () => {
+      const url = `${mockApiUrl}/meeting-points/missing`;
+      const pending = service.toggleStatus('missing');
+      httpTesting.expectOne({ method: 'GET', url }).flush(null, {
+        status: 404,
+        statusText: 'Not Found',
+      });
+
+      expect(await pending).toBeNull();
+      expect(service.error()).toBe('Ponto de encontro não encontrado.');
+      expect(service.loading.toggle()).toBe(false);
+      httpTesting.expectNone({ method: 'PATCH', url });
+    });
+
+    it('uses a generic message for internal server errors', async () => {
+      await loadPoints([activePoint]);
+      const pending = service.toggleStatus(activePoint.id);
+      httpTesting.expectOne({ method: 'PATCH', url: `${mockApiUrl}/meeting-points/${activePoint.id}` })
+        .flush({ message: 'Internal database error' }, { status: 500, statusText: 'Internal Server Error' });
+
+      expect(await pending).toBeNull();
+      expect(service.error()).toBe('Não foi possível atualizar o status do ponto de encontro. Tente novamente.');
+    });
+
     it('preserves a server message on toggle failure instead of the generic toggle message', async () => {
       await loadPoints([activePoint]);
 
@@ -284,5 +335,14 @@ describe('MeetingPointsService (CA11, CA12, CA14)', () => {
       expect(service.points()).toEqual([activePoint]);
       expect(service.loading.toggle()).toBe(false);
     });
+  });
+});
+
+describe('meeting points API configuration', () => {
+  it('resolves the application API URL for meeting points and wallet', () => {
+    TestBed.configureTestingModule({ providers: appConfig.providers });
+
+    expect(TestBed.inject(API_URL)).toBe('/api');
+    expect(TestBed.inject(WALLET_API_URL)).toBe('/api');
   });
 });

@@ -40,6 +40,8 @@ test('meeting-points endpoints expose the seed, guard duplicates and toggle stat
     id: 'point-1',
     name: 'Entrada Principal',
     address: 'Avenida Sete de Setembro, 3165',
+    latitude: -25.4,
+    longitude: -49.2,
     isActive: true,
   };
   writeFileSync(db, JSON.stringify({ 'meeting-points': [seedPoint] }));
@@ -61,13 +63,24 @@ test('meeting-points endpoints expose the seed, guard duplicates and toggle stat
       address: '  AVENIDA SETE DE SETEMBRO, 3165  ',
     });
     assert.equal(conflict.status, 409);
-    assert.deepEqual(await conflict.json(), {
+    const { timestamp, ...error } = await conflict.json();
+    assert.ok(Number.isFinite(Date.parse(timestamp)));
+    assert.deepEqual(error, {
+      statusCode: 409,
+      error: 'Conflict',
       message: 'Já existe um ponto de encontro com este nome neste endereço.',
     });
 
+    for (const body of [{}, { ...seedPoint, name: ' ' }, { ...seedPoint, latitude: null }, { ...seedPoint, longitude: 'invalid' }]) {
+      const invalid = await post(body);
+      assert.equal(invalid.status, 422);
+      assert.equal((await invalid.json()).statusCode, 422);
+    }
+    assert.deepEqual(await (await fetch(url)).json(), [seedPoint]);
+
     const concurrent = await Promise.all([
-      post({ name: 'Biblioteca', address: 'Rua Nova, 10', isActive: true }),
-      post({ name: '  biblioteca  ', address: '  rua nova, 10  ', isActive: true }),
+      post({ name: 'Biblioteca', address: 'Rua Nova, 10', latitude: -25.4, longitude: -49.2 }),
+      post({ name: '  biblioteca  ', address: '  rua nova, 10  ', latitude: -25.4, longitude: -49.2 }),
     ]);
     assert.deepEqual(concurrent.map((response) => response.status).sort(), [201, 409]);
     assert.equal((await (await fetch(url)).json()).length, 2);
@@ -78,6 +91,27 @@ test('meeting-points endpoints expose the seed, guard duplicates and toggle stat
     });
     assert.equal(toggled.status, 200);
     assert.equal((await toggled.json()).isActive, false);
+
+    const deleted = await fetch(`${url}/${seedPoint.id}`, { method: 'DELETE' });
+    assert.equal(deleted.status, 405);
+    assert.equal((await fetch(`${url}/${seedPoint.id}`)).status, 200);
+
+    const nestedResults = await Promise.all(
+      ['meeting-points', 'meeting-points%3F'].map((resource) =>
+        fetch(new URL(`/campuses/curitiba/${resource}`, url), {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({}),
+        }),
+      ),
+    );
+    const overriddenDelete = await fetch(`${url}/${seedPoint.id}`, {
+      method: 'POST',
+      headers: { 'x-http-method-override': 'DELETE' },
+    });
+    assert.deepEqual(nestedResults.map((response) => response.status), [405, 405]);
+    assert.equal(overriddenDelete.status, 405);
+    assert.equal((await fetch(`${url}/${seedPoint.id}`)).status, 200);
 
     const afterToggle = await (await fetch(url)).json();
     assert.equal(afterToggle.length, 2);
@@ -103,9 +137,14 @@ test('the real seed exposes GET/POST/PATCH on /meeting-points', async () => {
 
     const created = await fetch(url, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ name: 'Ponto de teste', address: 'Rua de teste, 1', isActive: true }),
+      body: JSON.stringify({ name: 'Ponto de teste', address: 'Rua de teste, 1', latitude: -25.4, longitude: -49.2 }),
     });
     assert.equal(created.status, 201);
+    const point = await created.json();
+    assert.ok(point.id);
+    assert.equal(point.isActive, true);
+    assert.ok(Number.isFinite(Date.parse(point.createdAt)));
+    assert.deepEqual(await (await fetch(`${url}/${point.id}`)).json(), point);
 
     const patched = await fetch(`${url}/${points[0].id}`, {
       method: 'PATCH', headers: { 'content-type': 'application/json' },

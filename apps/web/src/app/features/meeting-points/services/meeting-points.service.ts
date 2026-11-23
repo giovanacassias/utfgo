@@ -24,14 +24,14 @@ export class MeetingPointsService {
   private readonly _points = signal<MeetingPoint[]>([]);
   private readonly _loadingLoad = signal<boolean>(false);
   private readonly _loadingCreate = signal<boolean>(false);
-  private readonly _loadingToggle = signal<boolean>(false);
+  private readonly pendingToggles = signal(0);
   private readonly _error = signal<string | null>(null);
 
   readonly points = this._points.asReadonly();
   readonly loading = {
     load: this._loadingLoad.asReadonly(),
     create: this._loadingCreate.asReadonly(),
-    toggle: this._loadingToggle.asReadonly(),
+    toggle: computed(() => this.pendingToggles() > 0),
   };
   readonly isLoading = computed(
     () => this.loading.load() || this.loading.create() || this.loading.toggle(),
@@ -92,32 +92,37 @@ export class MeetingPointsService {
 
   /** Toggles isActive through PATCH, replacing the list item with the server response (no physical deletion). */
   async toggleStatus(id: string): Promise<MeetingPoint | null> {
-    const currentPoint = this._points().find((point) => point.id === id);
-    if (!currentPoint) {
-      this._error.set(NOT_FOUND_ERROR);
-      return null;
-    }
-
-    this._loadingToggle.set(true);
+    const url = `${this.apiUrl}/meeting-points/${encodeURIComponent(id)}`;
+    this.pendingToggles.update((pending) => pending + 1);
     this._error.set(null);
 
     try {
+      const currentPoint =
+        this._points().find((point) => point.id === id) ??
+        (await firstValueFrom(this.http.get<MeetingPoint>(url)));
+
       // TODO #2: Replace json-server PATCH with the NestJS meeting-points status endpoint.
       const updated = await firstValueFrom(
-        this.http.patch<MeetingPoint>(`${this.apiUrl}/meeting-points/${id}`, {
-          isActive: !currentPoint.isActive,
-        }),
+        this.http.patch<MeetingPoint>(url, { isActive: !currentPoint.isActive }),
       );
 
-      this._points.update((current) =>
-        current.map((point) => (point.id === id ? updated : point)),
-      );
+      this._points.update((current) => {
+        if (!current.some((point) => point.id === id)) {
+          return [...current, updated];
+        }
+
+        return current.map((point) => (point.id === id ? updated : point));
+      });
       return updated;
     } catch (err: unknown) {
-      this._error.set(this.formatError(err, TOGGLE_ERROR));
+      this._error.set(
+        err instanceof HttpErrorResponse && err.status === 404
+          ? NOT_FOUND_ERROR
+          : this.formatError(err, TOGGLE_ERROR),
+      );
       return null;
     } finally {
-      this._loadingToggle.set(false);
+      this.pendingToggles.update((pending) => pending - 1);
     }
   }
 
@@ -142,13 +147,10 @@ export class MeetingPointsService {
         return NETWORK_ERROR;
       }
 
-      const serverMessage =
-        typeof err.error?.message === 'string' ? err.error.message.trim() : '';
-      if (serverMessage) {
-        return serverMessage;
-      }
-      if (err.status === 409) {
-        return DUPLICATE_MEETING_POINT_ERROR;
+      if (err.status === 409 || err.status === 422) {
+        const serverMessage =
+          typeof err.error?.message === 'string' ? err.error.message.trim() : '';
+        return serverMessage || (err.status === 409 ? DUPLICATE_MEETING_POINT_ERROR : fallbackMessage);
       }
     }
 

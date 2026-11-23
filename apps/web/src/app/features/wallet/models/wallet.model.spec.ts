@@ -167,7 +167,7 @@ describe('wallet.model', () => {
   });
 
   describe('HTTP and environment configuration (Assume que 2-3)', () => {
-    it('configures environment.walletApiUrl, WALLET_API_URL token and HttpClient in appConfig', () => {
+    it('configures environment.apiUrl, WALLET_API_URL token and HttpClient in appConfig', () => {
       TestBed.configureTestingModule({
         providers: [...appConfig.providers],
       });
@@ -175,7 +175,7 @@ describe('wallet.model', () => {
       const apiUrl = TestBed.inject(WALLET_API_URL);
       const httpClient = TestBed.inject(HttpClient);
 
-      expect(environment.walletApiUrl).toBe('/api');
+      expect(environment.apiUrl).toBe('/api');
       expect(apiUrl).toBe('/api');
       expect(httpClient).toBeTruthy();
     });

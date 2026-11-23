@@ -12,7 +12,7 @@ import { API_URL } from './core/api-url.token';
 // TODO #2: Point WALLET_API_URL to the NestJS API once backend integration replaces json-server.
 export const WALLET_API_URL = new InjectionToken<string>('WALLET_API_URL', {
   providedIn: 'root',
-  factory: () => environment.walletApiUrl,
+  factory: () => environment.apiUrl,
 });
 
 export const appConfig: ApplicationConfig = {
@@ -21,7 +21,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(),
     // TODO #2: Temporary json-server base URL providers until NestJS API integration.
-    { provide: API_URL, useValue: environment.walletApiUrl },
-    { provide: WALLET_API_URL, useValue: environment.walletApiUrl },
+    { provide: API_URL, useValue: environment.apiUrl },
+    { provide: WALLET_API_URL, useExisting: API_URL },
   ],
 };
