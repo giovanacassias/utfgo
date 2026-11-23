@@ -43,7 +43,7 @@
   - Teste primeiro (`meeting-points.service.spec.ts`): prova carregamento de pontos, criação com `isActive = true`, bloqueio por duplicidade de nome no mesmo endereço, e alternância de status (*Soft Delete*) via `toggleStatus(id)` atualizando o estado reativo sem exclusão física.
   - Arquivos previstos: `apps/api/db.json`, `apps/web/src/app/features/meeting-points/services/meeting-points.service.ts`, `apps/web/src/app/features/meeting-points/services/meeting-points.service.spec.ts`
 
-- [ ] **Tarefa 3 — Componentes Reativos de Apresentação: Card e Busca (`PointCardComponent` e `PointSearchComponent`)**
+- [x] **Tarefa 3 — Componentes Reativos de Apresentação: Card e Busca (`PointCardComponent` e `PointSearchComponent`)**
   - Cobre: `CA5`, `CA6`
   - Teste primeiro (`point-card.component.spec.ts` e `point-search.component.spec.ts`): prova renderização dos dados do ponto via `input()` e disparo de evento via `output()`; prova sincronização bidirecional do termo de busca e filtro de ativos usando Signal `model()`.
   - Arquivos previstos: `apps/web/src/app/features/meeting-points/components/point-card/point-card.component.ts`, `apps/web/src/app/features/meeting-points/components/point-search/point-search.component.ts` e seus respectivos `.spec.ts`
