@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { authGuard } from './core/auth/auth.guard';
+import { adminGuard, authGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   {
@@ -32,9 +32,11 @@ export const routes: Routes = [
       },
       {
         path: 'pontos-de-encontro',
-        data: { title: 'Pontos de encontro' },
-        loadComponent: () =>
-          import('./features/home/placeholder.page').then((module) => module.PlaceholderPage),
+        canActivate: [adminGuard],
+        loadChildren: () =>
+          import('./features/meeting-points/meeting-points.routes').then(
+            (module) => module.MEETING_POINTS_ROUTES,
+          ),
       },
       {
         path: 'meu-historico',

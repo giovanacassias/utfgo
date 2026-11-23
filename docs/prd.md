@@ -85,7 +85,7 @@ Através do acompanhamento das métricas mensais do sistema: número de passagei
   Como passageiro, quero comprar fichas via Pix ou Cartão com confirmação assíncrona (webhook), para saldo de reservas.
 - **US03 — Homologação de Perfil de Condutor** · `M` · Status: `Draft`
   Como passageiro >18 anos, quero enviar CNH e CRLV, para aprovação de perfil de condutor pelo administrador.
-- **US04 — Gestão de Pontos de Encontro** · `S` · Status: `Ready`
+- **US04 — Gestão de Pontos de Encontro** · `S` · Status: `Live`
   Como administrador, quero cadastrar e desativar pontos (soft delete), para restringir caronas a locais válidos.
 - **US05 — Publicação de Carona** · `M` · Status: `Draft`
   Como condutor, quero publicar carona (sentido, data, hora, vagas, ponto) com 1h30 de antecedência mínima.

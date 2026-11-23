@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable, catchError, map, of, switchMap, throwError } from 'rxjs';
 
@@ -42,6 +42,16 @@ export class AuthService {
     }
     if (Date.now() >= new Date(challenge.expiresAt).getTime()) {
       return throwError(() => new Error('Este código expirou. Solicite um novo.'));
+    }
+    if (challenge.serverVerified) {
+      return this.http.post<{ user: User; wallet: Wallet; token: string }>(
+        `${API_URL}/auth/otp/verify`, { email: challenge.email, code },
+      ).pipe(
+        catchError((error: HttpErrorResponse) => throwError(() =>
+          new Error(error.status === 401 ? 'O código informado é inválido ou expirou.' : NETWORK_ERROR),
+        )),
+        switchMap(({ user, wallet, token }) => this.authenticate(user, wallet, false, token)),
+      );
     }
     if (code !== challenge.code) {
       return throwError(() => new Error('O código informado é inválido.'));
@@ -272,10 +282,11 @@ export class AuthService {
   }
 
   private sendChallenge(challenge: OtpChallenge): Observable<OtpChallenge> {
-    return this.http.post(`${API_URL}/auth/otp/send`, challenge).pipe(
-      map(() => {
-        this.currentChallenge.set(challenge);
-        return challenge;
+    return this.http.post<{ serverVerified: boolean } | null>(`${API_URL}/auth/otp/send`, challenge).pipe(
+      map((response) => {
+        const issuedChallenge = response?.serverVerified ? { ...challenge, serverVerified: true } : challenge;
+        this.currentChallenge.set(issuedChallenge);
+        return issuedChallenge;
       }),
       catchError(() => throwError(() => new Error(NETWORK_ERROR))),
     );
@@ -285,11 +296,12 @@ export class AuthService {
     user: User,
     wallet: Wallet,
     clearPendingRegistration = false,
+    token = `utfgo-session-${user.id}`,
   ): Observable<AuthSession> {
     const session: AuthSession = {
       user,
       wallet,
-      token: `utfgo-session-${user.id}`,
+      token,
     };
     this.sessionState.set(session);
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));

@@ -1,6 +1,14 @@
 {
   "users": [
     {
+      "id": "admin-1",
+      "name": "Administrador de Teste",
+      "email": "admin@alunos.utfpr.edu.br",
+      "campus": "Curitiba",
+      "role": "ADMIN",
+      "status": "ACTIVE"
+    },
+    {
       "id": "1",
       "name": "Passageiro Ativo",
       "email": "ativo@alunos.utfpr.edu.br",
@@ -34,6 +42,13 @@
     }
   ],
   "wallets": [
+    {
+      "id": "wallet-admin-1",
+      "userId": "admin-1",
+      "tokenBalance": 0,
+      "penaltyPoints": 0,
+      "updatedAt": "2026-11-22T00:00:00.000Z"
+    },
     {
       "id": "1",
       "userId": "1",
@@ -119,6 +134,44 @@
       "paidAt": "2026-11-22T18:30:04.600Z",
       "createdAt": "2026-11-22T18:29:57.175Z",
       "id": "9RBEUTf"
+    }
+  ],
+  "meeting-points": [
+    {
+      "id": "meeting-point-1",
+      "name": "Entrada Principal — Câmpus Curitiba",
+      "address": "Avenida Sete de Setembro, 3165 — Rebouças, Curitiba/PR",
+      "latitude": -25.4389,
+      "longitude": -49.2685,
+      "isActive": true,
+      "createdAt": "2026-10-05T12:00:00.000Z"
+    },
+    {
+      "id": "meeting-point-2",
+      "name": "Biblioteca Central",
+      "address": "Avenida Sete de Setembro, 3165 — Rebouças, Curitiba/PR",
+      "latitude": -25.4394,
+      "longitude": -49.2693,
+      "isActive": true,
+      "createdAt": "2026-10-08T12:00:00.000Z"
+    },
+    {
+      "id": "meeting-point-3",
+      "name": "Portão da Rua Desembargador Westphalen",
+      "address": "Rua Desembargador Westphalen, 550 — Rebouças, Curitiba/PR",
+      "latitude": -25.4375,
+      "longitude": -49.2678,
+      "isActive": true,
+      "createdAt": "2026-10-12T12:00:00.000Z"
+    },
+    {
+      "id": "meeting-point-4",
+      "name": "Estação de Ônibus — Câmpus Curitiba",
+      "address": "Avenida Sete de Setembro, 3165 — Rebouças, Curitiba/PR",
+      "latitude": -25.4398,
+      "longitude": -49.2699,
+      "isActive": false,
+      "createdAt": "2026-10-20T12:00:00.000Z"
     }
   ]
 }
