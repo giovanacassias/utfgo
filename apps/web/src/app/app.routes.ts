@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from './core/auth/auth.guard';
 
-// TODO #8: Replace these destinations with the lazy meeting point feature routes.
+// TODO #8: Move the create and detail destinations into the feature routes when their pages are ready.
 const loadMeetingPointPlaceholder = () =>
   import('./features/home/placeholder.page').then((module) => module.PlaceholderPage);
 
@@ -36,24 +36,20 @@ export const routes: Routes = [
       },
       {
         path: 'pontos-de-encontro',
-        loadChildren: () => [
-          {
-            path: '',
-            pathMatch: 'full',
-            data: { title: 'Pontos de encontro' },
-            loadComponent: loadMeetingPointPlaceholder,
-          },
-          {
-            path: 'novo',
-            data: { title: 'Novo ponto de encontro' },
-            loadComponent: loadMeetingPointPlaceholder,
-          },
-          {
-            path: ':id',
-            data: { title: 'Detalhes do ponto de encontro' },
-            loadComponent: loadMeetingPointPlaceholder,
-          },
-        ],
+        loadChildren: () =>
+          import('./features/meeting-points/meeting-points.routes').then(
+            (module) => module.MEETING_POINTS_ROUTES,
+          ),
+      },
+      {
+        path: 'pontos-de-encontro/novo',
+        data: { title: 'Novo ponto de encontro' },
+        loadComponent: loadMeetingPointPlaceholder,
+      },
+      {
+        path: 'pontos-de-encontro/:id',
+        data: { title: 'Detalhes do ponto de encontro' },
+        loadComponent: loadMeetingPointPlaceholder,
       },
       {
         path: 'meu-historico',

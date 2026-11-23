@@ -53,7 +53,7 @@
   - Teste primeiro: prova que `withComponentInputBinding()` está habilitado em `app.config.ts`, que as rotas filhas `/pontos-de-encontro` estão protegidas pelo `authGuard`, e que a tela inicial (`/inicio`) renderiza o atalho funcional para a gestão de pontos.
   - Arquivos previstos: `apps/web/src/app/app.config.ts`, `apps/web/src/app/app.routes.ts`, `apps/web/src/app/features/home/home.page.ts`, `apps/web/src/app/features/home/home.page.spec.ts`
 
-- [ ] **Tarefa 5 — Tela de Listagem com `@defer` e Filtro Reativo (`PointsListPage`)**
+- [x] **Tarefa 5 — Tela de Listagem com `@defer` e Filtro Reativo (`PointsListPage`)**
   - Cobre: `CA4`, `CA6`, `CA7`
   - Teste primeiro (`points-list.page.spec.ts`): prova iteração com `@for (point of points(); track point.id)`, integração com `<app-point-search>`, filtragem reativa dinâmica e presença de `@defer` com placeholder de carregamento.
   - Arquivos previstos: `apps/web/src/app/features/meeting-points/pages/points-list/points-list.page.ts`, `apps/web/src/app/features/meeting-points/pages/points-list/points-list.page.spec.ts`, `apps/web/src/app/features/meeting-points/meeting-points.routes.ts`
