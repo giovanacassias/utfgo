@@ -4,7 +4,7 @@ import {
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import { API_URL } from './core/api-url.token';
@@ -18,7 +18,7 @@ export const WALLET_API_URL = new InjectionToken<string>('WALLET_API_URL', {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(),
     // TODO #2: Temporary json-server base URL providers until NestJS API integration.
     { provide: API_URL, useValue: environment.apiUrl },

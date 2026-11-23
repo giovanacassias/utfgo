@@ -48,7 +48,7 @@
   - Teste primeiro (`point-card.component.spec.ts` e `point-search.component.spec.ts`): prova renderização dos dados do ponto via `input()` e disparo de evento via `output()`; prova sincronização bidirecional do termo de busca e filtro de ativos usando Signal `model()`.
   - Arquivos previstos: `apps/web/src/app/features/meeting-points/components/point-card/point-card.component.ts`, `apps/web/src/app/features/meeting-points/components/point-search/point-search.component.ts` e seus respectivos `.spec.ts`
 
-- [ ] **Tarefa 4 — Configuração de Roteamento com `withComponentInputBinding` e Atalho na Home**
+- [x] **Tarefa 4 — Configuração de Roteamento com `withComponentInputBinding` e Atalho na Home**
   - Cobre: `CA1`, `CA2`, `CA3`
   - Teste primeiro: prova que `withComponentInputBinding()` está habilitado em `app.config.ts`, que as rotas filhas `/pontos-de-encontro` estão protegidas pelo `authGuard`, e que a tela inicial (`/inicio`) renderiza o atalho funcional para a gestão de pontos.
   - Arquivos previstos: `apps/web/src/app/app.config.ts`, `apps/web/src/app/app.routes.ts`, `apps/web/src/app/features/home/home.page.ts`, `apps/web/src/app/features/home/home.page.spec.ts`
