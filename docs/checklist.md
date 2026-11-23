@@ -3,74 +3,122 @@
 > Este arquivo é **a única fonte do que a disciplina exige**: as regras do
 > projeto, os Indicadores de Desempenho (IDs) e as entregas. Os workflows
 > `/utf-prd` e `/utf-architecture` o usam como régua de conferência — trocar
-> de disciplina é trocar este arquivo, sem mexer no framework.
-> Marque um item **somente quando conseguir explicá-lo ao vivo** — item
-> entregue que não sobrevive à arguição presencial é invalidado. Não altere
-> os enunciados.
+> de disciplina (ou de semestre) é trocar este arquivo, sem mexer no framework.
+> Marque um item **somente quando conseguir explicá-lo** — item preenchido
+> sem o aluno saber explicar é penalizado com a retirada da nota **deste e de
+> mais um item feito**. Não altere os enunciados.
+> ➡️ O detalhamento do checklist e das entregas está no Guia do Projeto no
+> Notion: [link no Moodle].
 
 ## 📐 Regras da disciplina
 
-- **Escopo mínimo do projeto:** no mínimo **2 entidades com relação 1:N** e o
-  **fluxo de pagamento** em ambiente de testes (venda avulsa ou assinatura
-  recorrente) — as stories de pedido e pagamento são obrigatórias no PRD.
-- **Stack fixa:** backend **NestJS + Prisma ORM** com banco **relacional**
-  (PostgreSQL). Banco de produção em nuvem: Neon.tech ou Vercel Postgres
-  (⚠️ o PostgreSQL gratuito do Render expira em 30 dias — não use).
-- **Stack livre:** frontend à escolha entre **React, Angular ou Vue**,
-  consumindo a API.
-- **Tema:** livre, com regras de negócio claras; **único na turma** e válido
-  só após o **aceite do professor**. Individual ou em dupla.
-- **Fluxo de trabalho:** monorepo no GitHub + GitHub Flow (branches curtas
-  por feature, integração na `main` via Pull Request).
+- **Tema unificado do semestre** *(este bullet muda a cada semestre)* —
+  **2026/2: gestão de Caronas na UTFPR** — uma plataforma web funcional,
+  intuitiva e moderna para organizar caronas, gerenciar participantes e
+  automatizar resultados. O tema é o mesmo para toda a turma; cada equipe
+  imprime a própria **identidade visual, fluxo de UX e funcionalidades
+  extras**. O app integra o portal **UTFApps**, como legado para a
+  comunidade.
+- **Equipes:** 2 ou 3 integrantes.
+- **Stack fixa:** **Angular 20+** — arquitetura **standalone** (sem NgModules),
+  **Signals** para estado, sintaxe moderna (`@if`/`@for`/`@switch`/`@defer`,
+  `input()`/`output()`/`model()`, `inject()`).
+- **Sem backend próprio — e em duas fases:** no MVP (Entrega 2) os dados vêm
+  de um **json-server** (API fake local); na Entrega 3 a aplicação troca para
+  um **BaaS** (ex.: Supabase, PocketBase) com autenticação (JWT) e CRUD reais.
+  A escolha do BaaS é da equipe, registrada no documento técnico — e a troca
+  deve atingir **só os Services**: planeje a camada de dados para isso desde o
+  início (é a regra "componente não fala com o servidor" valendo dinheiro).
+- **Framework CSS moderno** à escolha (ex.: Tailwind CSS, PrimeNG), com
+  **Design System** próprio da equipe (tokens em `docs/design-tokens.md`).
+- **UI/UX:** protótipo navegável (Stitch/Figma) com link público no
+  repositório; **Mobile-First** responsivo; experiência **PWA**
+  (`manifest.webmanifest`, ícones, tema, splash, standalone, estados offline).
+- **Fluxo de trabalho: Gitflow** — branches `main` e `develop`; features em
+  branches curtas a partir da `develop`, integradas via Pull Request;
+  a `main` reflete produção. (Atenção: **não** é GitHub Flow.)
+- **Deploy** em produção: Vercel, Render ou similar.
+- **Desenvolvimento progressivo:** as atividades semanais são entregas
+  parciais do projeto — pratique o conteúdo da semana no próprio app.
+- **Documento técnico:** `docs/architecture.md` (no texto oficial da
+  disciplina ele é chamado de `ssd.md` — é o mesmo documento).
+- **README.md** com a estrutura exigida: título/nome do app, autores,
+  descrição, links para `docs/prd.md`, `docs/architecture.md` e
+  `docs/checklist.md`, link do protótipo (Stitch/Figma), stack (Angular, framework CSS,
+  BaaS, bibliotecas), link do site em produção, instruções de execução e
+  imagens de telas.
 
-## RA1 — Arquitetura, Engenharia de Requisitos com IA e Gestão Ágil
+## RA1 — Design e Experiência do Usuário (UI/UX) com IA
 
-- [ ] **ID1:** Estruturou o PRD e o SDD (Diagrama Mermaid) de forma clara, utilizando a IA para modelar o negócio.
-- [ ] **ID2:** A aplicação foi estruturada em formato de Monorepo (Front + Back) no GitHub.
-- [ ] **ID3:** Mapeou o PRD em Histórias de Usuário no GitHub Projects, criando um backlog rastreável de Issues.
-- [ ] **ID4:** Para as histórias implementadas, registrou no repositório a especificação e o plano derivados da Issue antes da codificação.
-- [ ] **ID5:** Demonstrou domínio do GitHub Flow, isolando features em branches curtas e utilizando Pull Requests para integração na main.
+- [ ] **ID1:** Desenvolver protótipos navegáveis (ex: gerados via Stitch e refinados no Figma) que demonstram compreensão das diretrizes de usabilidade, com link público disponibilizado no repositório.
+- [ ] **ID2:** Projetar interfaces responsivas com a abordagem Mobile-First, garantindo que o layout se adapte perfeitamente a diferentes resoluções (celulares, tablets e desktops).
+- [ ] **ID3:** Projetar a experiência de aplicativo nativo (PWA), configurando o manifest.webmanifest (ícones, cores de tema, splash screen e modo de exibição standalone) e prevendo o comportamento visual da interface em estados offline.
 
-## RA2 — Desenvolvimento Backend Assistido por IA
+## RA2 — Componentização e UI Declarativa Moderna
 
-- [ ] **ID6:** O código NestJS mantém separação estrita de camadas arquiteturais (Controllers, Services, Modules).
-- [ ] **ID7:** Aplicou DTOs e ValidationPipes (com whitelist) para blindar as entradas da API.
-- [ ] **ID8:** Implementou operações CRUD relacionais utilizando Prisma ORM.
-- [ ] **ID9:** Configurou autenticação JWT e protegeu rotas através de controle de acesso (Roles/Guards).
-- [ ] **ID10:** Padronizou o tráfego com Interceptors para respostas e Exception Filters globais para erros.
+- [ ] **ID4:** Desenvolver componentes utilizando estritamente a arquitetura Standalone (sem o uso de NgModules).
+- [ ] **ID5:** Incorporar e customizar componentes utilizando um Framework CSS moderno (ex: Tailwind CSS, PrimeNG).
+- [ ] **ID6:** Aplicar a nova sintaxe de fluxo de controle (@if / @switch) para exibição condicional de elementos.
+- [ ] **ID7:** Utilizar a nova sintaxe de fluxo de controle @for com a propriedade track obrigatória para a renderização dinâmica e otimizada de coleções.
+- [ ] **ID8:** Aplicar Pipes (nativos ou customizados) para formatar a apresentação de dados na interface.
+- [ ] **ID9:** Implementar Deferrable Views (@defer) para otimizar a performance, carregando componentes pesados apenas sob demanda.
 
-## RA3 — Qualidade de Software e TDD Guiado por IA
+## RA3 — Reatividade e Gerenciamento de Estado (Signals)
 
-- [ ] **ID11:** Orquestrou a IA no fluxo TDD, gerando testes automatizados baseados nas Issues antes da implementação da lógica.
-- [ ] **ID12:** Os testes locais e no pipeline executam com sucesso, cobrindo caminhos de sucesso e erro.
-- [ ] **ID13:** Submeteu o código à revisão de um agente distinto daquele que implementou, usando critérios fixos, e registrou no Pull Request as decisões tomadas sobre os apontamentos.
+- [ ] **ID10:** Aplicar técnicas de one-way data binding (Interpolação {{ }} e Property Binding [ ]) para exibir e atualizar dados, utilizando estritamente Signals (writable e computed) como fonte de estado.
+- [ ] **ID11:** Aplicar técnicas de event binding ( ) para capturar interações do usuário e atualizar o estado da aplicação.
+- [ ] **ID12:** Aplicar técnicas de two-way data binding utilizando a função moderna model() para sincronização bidirecional.
+- [ ] **ID13:** Utilizar efeitos (effect()) para a manipulação segura de efeitos colaterais reativos.
 
-## RA4 — Prototipagem e Integração Frontend
+## RA4 — Arquitetura de Software e Injeção de Dependências
 
-- [ ] **ID14:** A API do backend expõe documentação Swagger atualizada e interativa.
-- [ ] **ID15:** Materializou o PRD em interfaces visuais (React/Angular/Vue) utilizando prototipagem assistida por IA.
-- [ ] **ID16:** A interface consome os dados reais da API NestJS de forma assíncrona, lidando corretamente com os tokens JWT.
+- [ ] **ID14:** Utilizar as funções modernas input() e output() para a comunicação segura e tipada entre componentes em uma hierarquia (pai/filho).
+- [ ] **ID15:** Criar comunicação entre componentes não relacionados hierarquicamente extraindo a lógica para Services, utilizando a função inject() em vez de injeção via construtor.
 
-## RA5 — Pipeline CI/CD e Implantação Contínua
+## RA5 — Roteamento e Navegação SPA
 
-- [ ] **ID17:** As credenciais e variáveis sensíveis (como a DATABASE_URL da nuvem) estão seguras, ocultas do GitHub e injetadas corretamente via ConfigModule e variáveis de ambiente da plataforma de hospedagem.
-- [ ] **ID18:** Configurou esteira de CI (Continuous Integration) via GitHub Actions para validação automática de código (testes/linting) antes do merge.
-- [ ] **ID19:** Realizou o deploy da aplicação em domínio público (nuvem), conectada a um banco de dados relacional em produção (recomenda-se Neon.tech ou Vercel Postgres combinados com o Connection Pooling do Prisma).
+- [ ] **ID16:** Configurar rotas dinâmicas utilizando a API funcional moderna (provideRouter) e habilitar a passagem automática de parâmetros ativando a função withComponentInputBinding().
+- [ ] **ID17:** Passar e consumir dados entre telas capturando os parâmetros da rota (URL) diretamente através da função moderna Signal input() no componente de destino.
+- [ ] **ID18:** Criar uma estrutura de navegação aninhada (rotas filhas) para representar hierarquias de layout.
+- [ ] **ID19:** Aplicar Functional Route Guards para controle de acesso (autenticação) e Resolvers para pré-carregamento de dados antes da transição da tela.
 
-## RA6 — Integração de Meios de Pagamento
+## RA6 — Integração de APIs e Assincronismo (BaaS)
 
-- [ ] **ID20:** Especificou e implementou o fluxo de pagamento com integração a um gateway (Mercado Pago ou Stripe) em ambiente sandbox, modelando as entidades de pedido e pagamento.
-- [ ] **ID21:** Tratou a confirmação assíncrona via webhook com verificação de assinatura, mantendo o status do pedido consistente e as chaves de API fora do repositório.
+- [ ] **ID20:** Realizar requisições assíncronas (GET) a uma API pública.
+- [ ] **ID21:** Implementar o fluxo de Autenticação e Gerenciamento de Sessão (JWT) conectando a aplicação aos serviços de identidade do BaaS (ex: Supabase Auth).
+- [ ] **ID22:** Realizar o ciclo completo de operações CRUD (GET, POST, PUT, PATCH, DELETE) conectando a aplicação a um Backend-as-a-Service (ex: Supabase, PocketBase).
+- [ ] **ID23:** Implementar Functional Interceptors para injetar tokens de autenticação globalmente e tratar erros de forma centralizada.
+- [ ] **ID24:** Aplicar validações em Formulários Reativos, exibindo mensagens de erro claras e desabilitando o botão de submit com base na validade do formulário.
+- [ ] **ID25:** Fazer a ponte entre o assincronismo e a reatividade utilizando toSignal() e toObservable(), integrando RxJS com o ecossistema de Signals.
+
+## RA7 — Engenharia de Software, Versionamento e DevOps
+
+- [ ] **ID26:** Criar e gerenciar um repositório no GitHub utilizando a estrutura ágil do Gitflow (branches main e develop).
+- [ ] **ID27:** Colaborar ativamente realizando integrações via Pull Requests e resolução de conflitos.
+- [ ] **ID28:** Planejar, executar o processo de build moderno e realizar o deploy automatizado da aplicação em ambiente de produção (ex: Render, Vercel).
+
+## RA8 — Engenharia de Software Assistida por IA (SDD e Orquestração)
+
+- [ ] **ID29 — Escopo e Gestão Ágil:** Utilizar IA Generativa para a ideação e redação de User Stories. Cadastrar e gerenciar essas histórias como Issues em um Kanban no GitHub Projects.
+- [ ] **ID30 — Fundações (PRD):** Apoiar-se na IA para estruturar o Documento de Requisitos do Produto (prd.md).
+- [ ] **ID31 — Especificação Técnica:** A partir do PRD, instruir a IA a gerar um documento de especificação rigoroso (ssd.md — aqui, `docs/architecture.md`), detalhando explicitamente a arquitetura dos componentes Standalone e Services antes da geração do código fonte.
+- [ ] **ID32 — Orquestração (MCP e Skills):** Configurar a IDE (ex: Antigravity) ativando Servidores MCP (Model Context Protocol, ex: Figma, Supabase) e utilizando Skills de Angular 20+ para que o Agente gere o código com o contexto exato do projeto.
+- [ ] **ID33 — Validação e Testes (TDD):** Atuar como revisor técnico da IA. Orientar o agente a gerar testes unitários (.spec.ts) focados nas regras de negócio para validar rigorosamente a implementação gerada.
 
 ---
 
 ## 📦 As três entregas
 
-| Entrega | O que sobe | Vídeo |
-| --- | --- | --- |
-| **E1 — Documentação e Backlog** | `docs/prd.md` + `docs/architecture.md`, Kanban no GitHub Projects e ≥ 1 spec em `specs/` | Vídeo 1: regras de negócio, Diagrama ER e como a spec foi derivada da Issue |
-| **E2 — Backend e TDD** | API NestJS com Prisma, JWT e testes; PRs com a revisão do agente juiz | Vídeo 2: TDD rodando e a estrutura de Controllers, Services e Guards |
-| **E3 — Frontend e Nuvem** | Front consumindo a API, pagamento sandbox (ordem criada no servidor + webhook), GitHub Actions e deploy público | Vídeo 3: sistema em produção e um pedido mudando de estado pela notificação do gateway |
+| Entrega | O quê |
+| --- | --- |
+| **E1 — Concepção e Planejamento** | Escopo da equipe sobre o tema do semestre, repositório com Gitflow, README com o checklist, Design System, framework CSS, protótipo navegável no Figma |
+| **E2 — Estrutura Funcional (MVP)** | Aplicação com a estrutura funcional mínima, consumindo dados do **json-server** |
+| **E3 — Aplicação Completa e Apresentação** | Dados e autenticação migrados para o **BaaS** (ex.: Supabase), app completo em produção (Vercel/Render) + **vídeo** apresentando inspiração, design system, protótipo e o projeto contra o checklist |
 
-> ⚠️ Serviços gratuitos hibernam por inatividade — acesse a aplicação minutos
-> antes de gravar o vídeo ou defender, para "acordá-la".
+> 📅 **As datas de entrega estão no Moodle.** Elas mudam a cada semestre, e
+> data em arquivo do repositório envelhece sem ninguém perceber — a do Moodle é
+> a que vale.
+
+> 🎥 Se o vídeo for insuficiente, a apresentação é síncrona ao Professor
+> (presencial ou remota). O detalhamento de cada entrega está no Guia do
+> Projeto no Notion: [link no Moodle].
