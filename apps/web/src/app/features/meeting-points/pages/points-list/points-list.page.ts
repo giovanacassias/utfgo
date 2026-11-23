@@ -1,5 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs';
 
 import { PointCardComponent } from '../../components/point-card/point-card.component';
 import { PointSearchComponent } from '../../components/point-search/point-search.component';
@@ -76,8 +78,17 @@ export class PointsListPage implements OnInit {
   protected readonly search = signal('');
   protected readonly showActive = signal(false);
 
+  private readonly debouncedSearch = toSignal(
+    toObservable(this.search).pipe(
+      map((term) => term.trim().toLowerCase()),
+      distinctUntilChanged(),
+      debounceTime(250),
+    ),
+    { initialValue: '' },
+  );
+
   protected readonly points = computed(() => {
-    const search = this.search().trim().toLowerCase();
+    const search = this.debouncedSearch();
     const showActive = this.showActive();
 
     return this.meetingPoints

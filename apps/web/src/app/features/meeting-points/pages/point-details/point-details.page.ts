@@ -1,7 +1,7 @@
-import { Component, computed, inject, input, linkedSignal, OnInit } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { MeetingPointsService } from '../../services/meeting-points.service';
+import { MeetingPointDetails, MeetingPointsService } from '../../services/meeting-points.service';
 
 @Component({
   selector: 'app-point-details',
@@ -15,9 +15,7 @@ import { MeetingPointsService } from '../../services/meeting-points.service';
         Voltar para pontos de encontro
       </a>
 
-      @if (meetingPoints.loading.load()) {
-        <p role="status" class="text-small text-text-secondary">Carregando ponto de encontro…</p>
-      } @else if (point(); as point) {
+      @if (point(); as point) {
         <h1 class="text-title font-bold text-text-primary">{{ point.name }}</h1>
         <p class="text-body text-text-secondary">{{ point.address }}</p>
         <span
@@ -37,31 +35,33 @@ import { MeetingPointsService } from '../../services/meeting-points.service';
           {{ point.isActive ? 'Desativar ponto' : 'Reativar ponto' }}
         </button>
         <p role="status" class="text-small text-success">{{ feedback() }}</p>
-      } @else if (!meetingPoints.error()) {
+      } @else if (!details().error) {
         <p class="text-small text-text-secondary">Ponto de encontro não encontrado.</p>
       }
 
-      @if (meetingPoints.error(); as error) {
+      @if ((details().error ?? toggleError()); as error) {
         <p role="alert" class="text-small text-danger">{{ error }}</p>
       }
     </section>
   `,
 })
-export class PointDetailsPage implements OnInit {
+export class PointDetailsPage {
   readonly id = input.required<string>();
+  readonly details = input.required<MeetingPointDetails>();
 
   protected readonly meetingPoints = inject(MeetingPointsService);
   protected readonly point = computed(() => {
-    const id = this.id();
-    return this.meetingPoints.points().find((point) => point.id === id);
+    const { point } = this.details();
+    return point
+      ? this.meetingPoints.points().find(({ id }) => id === point.id) ?? point
+      : null;
   });
   protected readonly feedback = linkedSignal({ source: this.id, computation: () => '' });
 
-  ngOnInit(): void {
-    if (!this.meetingPoints.loading.load()) {
-      void this.meetingPoints.loadPoints();
-    }
-  }
+  protected readonly toggleError = linkedSignal({
+    source: this.details,
+    computation: (): string | null => null,
+  });
 
   protected async toggleStatus(): Promise<void> {
     if (this.meetingPoints.loading.toggle()) {
@@ -69,12 +69,20 @@ export class PointDetailsPage implements OnInit {
     }
 
     this.feedback.set('');
-    const updated = await this.meetingPoints.toggleStatus(this.id());
+    this.toggleError.set(null);
+    const id = this.id();
+    const updated = await this.meetingPoints.toggleStatus(id);
 
-    if (updated?.id === this.id()) {
+    if (id !== this.id()) {
+      return;
+    }
+
+    if (updated) {
       this.feedback.set(
         updated.isActive ? 'Ponto de encontro reativado.' : 'Ponto de encontro desativado.',
       );
+    } else {
+      this.toggleError.set(this.meetingPoints.error());
     }
   }
 }

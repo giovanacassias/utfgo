@@ -1,4 +1,10 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { ResolveFn, Routes } from '@angular/router';
+
+import { MeetingPointDetails, MeetingPointsService } from './services/meeting-points.service';
+
+const meetingPointResolver: ResolveFn<MeetingPointDetails> = (route) =>
+  inject(MeetingPointsService).loadPoint(route.paramMap.get('id')!);
 
 export const MEETING_POINTS_ROUTES: Routes = [
   {
@@ -14,6 +20,7 @@ export const MEETING_POINTS_ROUTES: Routes = [
   },
   {
     path: ':id',
+    resolve: { details: meetingPointResolver },
     loadComponent: () =>
       import('./pages/point-details/point-details.page').then((module) => module.PointDetailsPage),
   },

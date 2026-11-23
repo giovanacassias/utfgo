@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, map, Observable, of } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { API_URL } from '../../../core/api-url.token';
 import { CreateMeetingPointPayload, MeetingPoint } from '../models/meeting-point.model';
@@ -14,6 +14,11 @@ const TOGGLE_ERROR = 'Não foi possível atualizar o status do ponto de encontro
 const NOT_FOUND_ERROR = 'Ponto de encontro não encontrado.';
 const NETWORK_ERROR =
   'Não foi possível conectar ao servidor de pontos de encontro. Verifique sua conexão e tente novamente.';
+
+export interface MeetingPointDetails {
+  point: MeetingPoint | null;
+  error: string | null;
+}
 
 /** Manages the meeting point list, creation with uniqueness check and soft delete (status toggle). */
 @Injectable({ providedIn: 'root' })
@@ -57,6 +62,25 @@ export class MeetingPointsService {
     } finally {
       this._loadingLoad.set(false);
     }
+  }
+
+  loadPoint(id: string): Observable<MeetingPointDetails> {
+    const url = `${this.apiUrl}/meeting-points/${encodeURIComponent(id)}`;
+    return this.http.get<MeetingPoint>(url).pipe(
+      map((point) => {
+        this.storePoint(point);
+        return { point, error: null };
+      }),
+      catchError((err: unknown) =>
+        of({
+          point: null,
+          error:
+            err instanceof HttpErrorResponse && err.status === 404
+              ? null
+              : this.formatError(err, LOAD_ERROR),
+        }),
+      ),
+    );
   }
 
   /** Creates a meeting point with isActive forced to true, unless name + address duplicate an existing one. */
@@ -108,13 +132,7 @@ export class MeetingPointsService {
         this.http.patch<MeetingPoint>(url, { isActive: !currentPoint.isActive }, this.writeOptions()),
       );
 
-      this._points.update((current) => {
-        if (!current.some((point) => point.id === id)) {
-          return [...current, updated];
-        }
-
-        return current.map((point) => (point.id === id ? updated : point));
-      });
+      this.storePoint(updated);
       return updated;
     } catch (err: unknown) {
       this._error.set(
@@ -126,6 +144,16 @@ export class MeetingPointsService {
     } finally {
       this.pendingToggles.update((pending) => pending - 1);
     }
+  }
+
+  private storePoint(point: MeetingPoint): void {
+    this._points.update((current) => {
+      if (!current.some(({ id }) => id === point.id)) {
+        return [...current, point];
+      }
+
+      return current.map((item) => item.id === point.id ? point : item);
+    });
   }
 
   private hasDuplicate(name: string, address: string): boolean {

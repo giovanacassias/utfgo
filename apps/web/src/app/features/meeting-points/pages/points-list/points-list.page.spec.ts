@@ -2,6 +2,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { signal } from '@angular/core';
 import { DeferBlockBehavior, DeferBlockState, TestBed } from '@angular/core/testing';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { vi } from 'vitest';
 
 import { appConfig } from '../../../../app.config';
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -113,7 +114,8 @@ describe('PointsListPage', () => {
     search!.value = 'portão';
     search!.dispatchEvent(new Event('input', { bubbles: true }));
     await harness.fixture.whenStable();
-    expect(view.querySelectorAll('app-point-card')).toHaveLength(0);
+    expect(view.querySelectorAll('app-point-card')).toHaveLength(1);
+    await vi.waitFor(() => expect(view.querySelectorAll('app-point-card')).toHaveLength(0));
 
     onlyActive!.click();
     await harness.fixture.whenStable();
